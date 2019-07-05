@@ -48,7 +48,7 @@ class VerisureClient
                 "https://customers.verisure.co.uk/gb/login/gb",
                 // "http://verisure-example.test/login.php",
                 [
-                    // "Origin" => "https://customers.verisure.co.uk",
+                    "Origin" => "https://customers.verisure.co.uk",
                     "Connection" => "keep-alive",
                     "Content-Type" => "application/x-www-form-urlencoded",
                     "Cache-Control" => "max-age=0",
@@ -106,7 +106,7 @@ class VerisureClient
         $request = new Request(
             "POST",
             "https://verisure-example.test/gb/installations/243397/panel/status",
-            // "https://customers.verisure.co.uk/gb/installations/243397/panel/status",
+            "https://customers.verisure.co.uk/gb/installations/243397/panel/status",
             [
                 "Cookie" => "accept_cookies=1; _session_id=" . $sessionId->value,
                 "Origin" => "https://customers.verisure.co.uk",
@@ -159,6 +159,7 @@ class VerisureClient
 
         $response = $this->client->send($request);
 
+        // Parse the HTML from the response and get the authenticity_token
         $dom = new DOMDocument();
         libxml_use_internal_errors(true);
         $dom->loadHTML((string) $response->getBody()->getContents());

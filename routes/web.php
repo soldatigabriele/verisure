@@ -11,6 +11,10 @@
 |
 */
 
+Route::get('/', function() {
+    return app()->version();
+});
+
 Route::get('/login', 'VerisureController@login');
 
 Route::get('/logout', 'VerisureController@logout');
