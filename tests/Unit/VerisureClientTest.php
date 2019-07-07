@@ -43,10 +43,9 @@ class VerisureClientTest extends TestCase
         // Create a mock and queue two responses.
         $mock = new MockHandler([$loginResponse, $dashboardResponse]);
         $handler = HandlerStack::create($mock);
-        $client = new Client(['cookies' => true, 'handler' => $handler]);
+        $guzzleClient = new Client(['cookies' => true, 'handler' => $handler]);
 
-        $verisure = new VerisureClient($client);
-        $verisure->login();
+        new VerisureClient($guzzleClient);
 
         // The CSRF Token should be stored in the DB with the session
         $this->assertDatabaseHas('sessions', [
@@ -70,10 +69,8 @@ class VerisureClientTest extends TestCase
         // Create a mock and queue two responses.
         $mock = new MockHandler([$loginResponse, $dashboardResponse]);
         $handler = HandlerStack::create($mock);
-        $client = new Client(['cookies' => true, 'handler' => $handler]);
-
-        $verisure = new VerisureClient($client);
-        $verisure->login();
+        $guzzleClient = new Client(['cookies' => true, 'handler' => $handler]);
+        $verisure = new VerisureClient($guzzleClient);
 
         $this->assertDatabaseHas('session_cookies', ['value' => 'test-session-id']);
     }
@@ -95,7 +92,7 @@ class VerisureClientTest extends TestCase
         $verisure = new VerisureClient($spy);
 
         $spy->shouldNotHaveReceived('send');
-        $this->assertTrue($verisure->login()->is($session));
+        $this->assertTrue($verisure->getSession()->is($session));
     }
 
     /**

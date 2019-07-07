@@ -21,8 +21,7 @@ class VerisureController extends BaseController
     public function login()
     {
         try {
-            $client = new VerisureClient;
-            $client->login();
+            new VerisureClient;
         } catch (\Throwable $th) {
             return response()->json(['status' => $th->getMessage()], 400);
         }
