@@ -2,13 +2,13 @@
 
 namespace Tests\Unit;
 
+use App\Session;
 use Carbon\Carbon;
 use Tests\TestCase;
-use App\SessionCookie;
 use Illuminate\Support\Str;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class SessionCookieTest extends TestCase
+class SessionTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -17,10 +17,11 @@ class SessionCookieTest extends TestCase
      *
      * @return void
      */
-    public function testExpiredCookie()
+    public function testExpiredSession()
     {
-        // Check that we don't have any session cookie
-        $session = SessionCookie::create([
+        // Check that we don't have any session
+        $session = Session::create([
+            'csrf' => Str::random(20),
             'value' => Str::random(20),
             'expires' => Carbon::yesterday(),
         ]);
@@ -28,9 +29,10 @@ class SessionCookieTest extends TestCase
         $this->assertFalse($session->isValid());
 
     }
-    public function testValidCookie()
+    public function testValidSession()
     {
-        $session = SessionCookie::create([
+        $session = Session::create([
+            'csrf' => Str::random(20),
             'value' => Str::random(20),
             'expires' => Carbon::tomorrow(),
         ]);

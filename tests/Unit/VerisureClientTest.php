@@ -3,14 +3,15 @@
 namespace Tests\Unit;
 
 use Mockery;
+use App\Session;
 use Carbon\Carbon;
 use Tests\TestCase;
-use App\SessionCookie;
 use GuzzleHttp\Client;
 use App\VerisureClient;
 use Illuminate\Support\Str;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use App\Exceptions\LoginException;
 use GuzzleHttp\Handler\MockHandler;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,15 +28,14 @@ class VerisureClientTest extends TestCase
     public function testLogin()
     {
         // Check that we don't have any session cookie
-        $this->assertNull(SessionCookie::first());
+        $this->assertNull(Session::first());
+
         // We should do the login if we have an expired token in the DB
-        SessionCookie::create([
+        Session::create([
+            'csrf' => Str::random(20),
             'value' => Str::random(20),
             'expires' => Carbon::yesterday(),
         ]);
-
-        // The Authenticity Token should be cached
-        Cache::shouldReceive('forever')->once()->with('authenticityToken', '8cwrVwerJDxZX13dbTYFu6poc050jqqVJDYgplcNPSU=');
 
         $loginResponse = new Response(200, [], $this->getLoginPageHTML());
         $dashboardResponse = new Response(200, ['Set-Cookie' => '_session_id=test-session-id; path=/; expires=Thu, 04-Jul-2019 20:24:57 GMT; HttpOnly'], $this->getDashboardPageHTML());
@@ -45,7 +45,34 @@ class VerisureClientTest extends TestCase
         $handler = HandlerStack::create($mock);
         $client = new Client(['cookies' => true, 'handler' => $handler]);
 
-        $verisure = new VerisureClient([], $client);
+        $verisure = new VerisureClient($client);
+        $verisure->login();
+
+        // The CSRF Token should be stored in the DB with the session
+        $this->assertDatabaseHas('sessions', [
+            'value' => 'test-session-id',
+            'csrf' => '8cwrVwerJDxZX13dbTYFu6poc050jqqVJDYgplcNPSU=',
+            ]);
+    }
+
+    /**
+     * Login test.
+     *
+     * @return void
+     */
+    public function testLoginFails()
+    {
+        $this->expectException(LoginException::class);
+        
+        $loginResponse = new Response(200, [], $this->getLoginPageHTML());
+        $dashboardResponse = new Response(200, ['Set-Cookie' => 'wrong_cookie=test-session-id; path=/; expires=Thu, 04-Jul-2019 20:24:57 GMT; HttpOnly'], $this->getDashboardPageHTML());
+
+        // Create a mock and queue two responses.
+        $mock = new MockHandler([$loginResponse, $dashboardResponse]);
+        $handler = HandlerStack::create($mock);
+        $client = new Client(['cookies' => true, 'handler' => $handler]);
+
+        $verisure = new VerisureClient($client);
         $verisure->login();
 
         $this->assertDatabaseHas('session_cookies', ['value' => 'test-session-id']);
@@ -56,18 +83,19 @@ class VerisureClientTest extends TestCase
      *
      * @return void
      */
-    public function testLoginWithSessionCookie()
+    public function testLoginWithSession()
     {
-        SessionCookie::create([
+        $session = Session::create([
+            'csrf' => Str::random(20),
             'value' => Str::random(20),
             'expires' => Carbon::tomorrow(),
         ]);
 
         $spy = Mockery::spy(Client::class);
-        $verisure = new VerisureClient([], $spy);
+        $verisure = new VerisureClient($spy);
 
         $spy->shouldNotHaveReceived('send');
-        $this->assertTrue($verisure->login());
+        $this->assertTrue($verisure->login()->is($session));
     }
 
     /**

@@ -2,28 +2,25 @@
 
 namespace App;
 
+use App\Session;
 use DOMDocument;
 use Carbon\Carbon;
-use App\SessionCookie;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
+use \App\Exceptions\LoginException;
 use Illuminate\Support\Facades\Cache;
 
 class VerisureClient
 {
     protected $client;
-    protected $config;
-    protected $authenticityToken;
 
     /**
      * Constructor of the client
      *
-     * @param array $config
      * @param Client $client
      */
-    public function __construct(array $config = [], Client $client = null)
+    public function __construct(Client $client = null)
     {
-        $this->config = $config;
         $this->client = $client ?? (new Client(['cookies' => true]));
     }
 
@@ -32,21 +29,18 @@ class VerisureClient
      *
      * @return bool
      */
-    public function login(): bool
+    public function login(): Session
     {
         // If we have a valid cookie, there is no need to log in again
-        if (optional(SessionCookie::latest()->first())->isValid()) {
-            return true;
+        if (optional($session = Session::latest()->first())->isValid()) {
+            return $session;
         }
 
         // Get the Authenticity Token from the login page (CSRF token)
-        $this->getAuthenticityToken();
-
-        if ($this->authenticityToken) {
+        if ($session = $this->getAuthenticityToken()) {
             $loginRequest = new Request(
                 "POST",
-                "https://customers.verisure.co.uk/gb/login/gb",
-                // "http://verisure-example.test/login.php",
+                config("verisure.url"). "/gb/login/gb",
                 [
                     "Origin" => "https://customers.verisure.co.uk",
                     "Connection" => "keep-alive",
@@ -59,24 +53,22 @@ class VerisureClient
                     "Accept-Encoding" => "gzip, deflate, br",
                     "Accept-Language" => "en-GB,en;q=0.9,it-IT;q=0.8,it;q=0.7,en-US;q=0.6",
                 ],
-                "utf8=%E2%9C%93&authenticity_token=" . $this->authenticityToken . "&verisure_rsi_login%5Bnick%5D=" . env("VERISURE_APP_USERNAME") . "&verisure_rsi_login%5Bpasswd%5D=" . env("VERISURE_APP_PASSWORD") . "&button="
+                "utf8=%E2%9C%93&authenticity_token=" . $session->csrf . "&verisure_rsi_login%5Bnick%5D=" . config("verisure.username") . "&verisure_rsi_login%5Bpasswd%5D=" . config("verisure.password") . "&button="
             );
-
             $this->client->send($loginRequest);
-
+            
             // Store the session cookie
             $cookieJar = $this->client->getConfig('cookies');
-            $sessionCookie = $cookieJar->getCookieByName('_session_id');
-            if ($sessionCookie) {
-                SessionCookie::create([
-                    'value' => $sessionCookie->getValue(),
-                    'expires' => Carbon::createFromTimestamp($sessionCookie->getExpires()),
-                ]);
+            $cookie = $cookieJar->getCookieByName('_session_id');
+            if ($cookie) {
+                $session->value =  $cookie->getValue();
+                $session->expires = Carbon::createFromTimestamp($cookie->getExpires());
+                $session->save();
+                return $session;
             }
-
-            return true;
+            throw new LoginException("Session cookie was not returned after the login");
         }
-        throw new \Exception("Error during the login process");
+        throw new LoginException("Error during the login process");
     }
 
     public function logout()
@@ -96,7 +88,7 @@ class VerisureClient
 
     public function status()
     {
-        $sessionId = SessionCookie::latest('id')->firstOrFail();
+        $sessionId = Session::latest('id')->firstOrFail();
 
         // TODO change logic and test
         if ($sessionId->expires < Carbon::now() || is_null(Cache::get('authenticityToken'))) {
@@ -105,8 +97,7 @@ class VerisureClient
 
         $request = new Request(
             "POST",
-            "https://verisure-example.test/gb/installations/243397/panel/status",
-            "https://customers.verisure.co.uk/gb/installations/243397/panel/status",
+            config("verisure.url"). "/gb/installations/".config("verisure.installation")."/panel/status",
             [
                 "Cookie" => "accept_cookies=1; _session_id=" . $sessionId->value,
                 "Origin" => "https://customers.verisure.co.uk",
@@ -138,14 +129,13 @@ class VerisureClient
     /**
      * Get the Authenticity Token from the login page
      *
-     * @return bool
+     * @return Session
      */
-    protected function getAuthenticityToken(): bool
+    protected function getAuthenticityToken(): Session
     {
         $request = new Request(
             "GET",
-            "https://customers.verisure.co.uk/gb/login/gb",
-            // "http://verisure-example.test/login.html",
+            config("verisure.url"). "/gb/login/gb",
             [
                 "Connection" => "keep-alive",
                 "Cache-Control" => "max-age=0",
@@ -166,9 +156,9 @@ class VerisureClient
         libxml_clear_errors();
         foreach ($dom->getElementsByTagName('input') as $input) {
             if ($input->getAttribute('name') == 'authenticity_token') {
-                $this->authenticityToken = $input->getAttribute('value');
-                Cache::forever('authenticityToken', $this->authenticityToken);
-                return true;
+                return Session::create([
+                    'csrf' => $input->getAttribute('value'),
+                ]);
             }
         }
 

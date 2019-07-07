@@ -6,13 +6,11 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class SessionCookie extends Model
+class Session extends Model
 {
     use SoftDeletes;
 
-    protected $table = "session_cookies";
-
-    protected $fillable = ['value', 'expires'];
+    protected $fillable = ['value', 'expires', 'csrf'];
 
     protected $dates = ['expires'];
 

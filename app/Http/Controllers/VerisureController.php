@@ -34,7 +34,7 @@ class VerisureController extends BaseController
         info(Carbon::now());
         return response()->json(["job_id" => "1234657"]);
 
-        $client = new VerisureClient([]);
+        $client = new VerisureClient;
         $jobId = $client->status();
 
     }
@@ -58,7 +58,7 @@ class VerisureController extends BaseController
     public function logout()
     {
         try {
-            $client = new VerisureClient([]);
+            $client = new VerisureClient;
             $client->logout();
         } catch (\Throwable $th) {
             return response()->json(['status' => $th->getMessage()], 400);

@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateSessionCookiesTable extends Migration
+class CreateSessionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,11 @@ class CreateSessionCookiesTable extends Migration
      */
     public function up()
     {
-        Schema::create('session_cookies', function (Blueprint $table) {
+        Schema::create('sessions', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('value');
-            $table->dateTime('expires');
+            $table->string('value')->nullable();
+            $table->string('csrf');
+            $table->dateTime('expires')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -29,6 +30,6 @@ class CreateSessionCookiesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('session_cookies');
+        Schema::dropIfExists('sessions');
     }
 }
