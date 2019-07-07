@@ -27,17 +27,25 @@ class VerisureController extends BaseController
                 'session_id' => $session->toArray(),
             ], 200);
         } catch (\Throwable $th) {
-            return response()->json(['status' => $th->getMessage()], 400);
+            return response()->json([
+                'status' => $th->getMessage(),
+            ], 400);
         }
     }
 
     public function status()
     {
         info(Carbon::now());
-        return response()->json(["job_id" => "1234657"]);
+        return response()->json([
+            "job_id" => "1234657",
+        ]);
 
         $client = new VerisureClient;
         $jobId = $client->status();
+        
+        return response()->json([
+            "job_id" => $jobId,
+        ]);
 
     }
 
@@ -47,7 +55,9 @@ class VerisureController extends BaseController
         info(Carbon::now());
         \Illuminate\Support\Facades\Cache::increment('requests');
         if (\Illuminate\Support\Facades\Cache::get('requests') > 5) {
-            return response()->json(['status' => 'activated']);
+            return response()->json([
+                'status' => 'activated',
+            ]);
         }
         abort(501);
     }
@@ -63,9 +73,13 @@ class VerisureController extends BaseController
             $client = new VerisureClient;
             $client->logout();
         } catch (\Throwable $th) {
-            return response()->json(['status' => $th->getMessage()], 400);
+            return response()->json([
+                'status' => $th->getMessage(),
+            ], 400);
         }
-        return response()->json(['status' => 'success'], 200);
+        return response()->json([
+            'status' => 'success',
+        ], 200);
     }
 
 }

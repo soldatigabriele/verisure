@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use \App\Exceptions\LoginException;
+use App\Exceptions\StatusException;
 use Illuminate\Support\Facades\Cache;
 
 class VerisureClient
@@ -93,21 +94,14 @@ class VerisureClient
 
     public function status()
     {
-        $sessionId = Session::latest('id')->firstOrFail();
-
-        // TODO change logic and test
-        if ($sessionId->expires < Carbon::now() || is_null(Cache::get('authenticityToken'))) {
-            $this->login();
-        }
-
         $request = new Request(
             "POST",
             config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/status",
             [
-                "Cookie" => "accept_cookies=1; _session_id=" . $sessionId->value,
+                "Cookie" => "accept_cookies=1; _session_id=" . $this->session->value,
                 "Origin" => "https://customers.verisure.co.uk",
                 "Accept-Encoding" => "gzip, deflate, br",
-                "X-Csrf-Token" => Cache::get('authenticityToken'),
+                "X-Csrf-Token" => $this->session->csrf,
                 "Accept-Language" => "en-GB,en;q=0.9,it-IT;q=0.8,it;q=0.7,en-US;q=0.6",
                 "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
                 "Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8",
@@ -116,14 +110,14 @@ class VerisureClient
                 "X-Requested-With" => "XMLHttpRequest",
                 "Connection" => "keep-alive",
             ],
-            "utf8=%E2%9C%93&authenticity_token=" . Cache::get('authenticityToken'));
+            "utf8=%E2%9C%93&authenticity_token=" . $this->session->csrf);
 
+        // Guzzle will throw an exception if the response is not in the 2xx
         $response = $this->client->send($request);
-        $response = (string) $response->getBody();
-        dump($response->getStatusCode());
         if ($response->getStatusCode() == 201) {
-            return json_decode($response)->job_id;
+            return json_decode($response->getBody()->getContents())->job_id;
         }
+        throw new StatusException("Server responded with status code: " . $response->getStatusCode());
     }
 
     public function refreshSession()

@@ -9,14 +9,11 @@ use Tests\TestCase;
 use GuzzleHttp\Client;
 use App\VerisureClient;
 use Illuminate\Support\Str;
-use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use App\Exceptions\LoginException;
-use GuzzleHttp\Handler\MockHandler;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class VerisureClientTest extends TestCase
+class VerisureClientLoginTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -37,21 +34,19 @@ class VerisureClientTest extends TestCase
             'expires' => Carbon::yesterday(),
         ]);
 
-        $loginResponse = new Response(200, [], $this->getLoginPageHTML());
-        $dashboardResponse = new Response(200, ['Set-Cookie' => '_session_id=test-session-id; path=/; expires=Thu, 04-Jul-2019 20:24:57 GMT; HttpOnly'], $this->getDashboardPageHTML());
-
-        // Create a mock and queue two responses.
-        $mock = new MockHandler([$loginResponse, $dashboardResponse]);
-        $handler = HandlerStack::create($mock);
-        $guzzleClient = new Client(['cookies' => true, 'handler' => $handler]);
-
+        // The first request is to the login page with the form, the second is the actual login
+        $responses = [
+            new Response(200, [], $this->getLoginPageHTML()),
+            new Response(200, ['Set-Cookie' => '_session_id=test-session-id; path=/; expires=Thu, 04-Jul-2019 20:24:57 GMT; HttpOnly'], $this->getDashboardPageHTML()),
+        ];
+        $guzzleClient = $this->mockGuzzle($responses);
         new VerisureClient($guzzleClient);
 
         // The CSRF Token should be stored in the DB with the session
         $this->assertDatabaseHas('sessions', [
             'value' => 'test-session-id',
             'csrf' => '8cwrVwerJDxZX13dbTYFu6poc050jqqVJDYgplcNPSU=',
-            ]);
+        ]);
     }
 
     /**
@@ -62,15 +57,13 @@ class VerisureClientTest extends TestCase
     public function testLoginFails()
     {
         $this->expectException(LoginException::class);
-        
-        $loginResponse = new Response(200, [], $this->getLoginPageHTML());
-        $dashboardResponse = new Response(200, ['Set-Cookie' => 'wrong_cookie=test-session-id; path=/; expires=Thu, 04-Jul-2019 20:24:57 GMT; HttpOnly'], $this->getDashboardPageHTML());
 
-        // Create a mock and queue two responses.
-        $mock = new MockHandler([$loginResponse, $dashboardResponse]);
-        $handler = HandlerStack::create($mock);
-        $guzzleClient = new Client(['cookies' => true, 'handler' => $handler]);
-        $verisure = new VerisureClient($guzzleClient);
+        $responses = [
+            new Response(200, [], $this->getLoginPageHTML()),
+            new Response(200, ['Set-Cookie' => 'wrong_cookie=test-session-id; path=/; expires=Thu, 04-Jul-2019 20:24:57 GMT; HttpOnly'], $this->getDashboardPageHTML()),
+        ];
+        $guzzleClient = $this->mockGuzzle($responses);
+        new VerisureClient($guzzleClient);
 
         $this->assertDatabaseHas('session_cookies', ['value' => 'test-session-id']);
     }
