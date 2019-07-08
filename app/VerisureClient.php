@@ -121,11 +121,12 @@ class VerisureClient
     /**
      * Activate the main alarm
      */
-    public function activate()
+    public function activate(string $mode = null)
     {
+        $mode = in_array($mode, ['house', 'night', 'day']) ? $mode : 'house';
         $request = new Request(
             "POST",
-            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/house",
+            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/" . $mode,
             [
                 "Cookie" => "accept_cookies=1; _session_id=" . $this->session->value,
                 "Origin" => "https://customers.verisure.co.uk",

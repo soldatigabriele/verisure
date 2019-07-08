@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\VerisureClient;
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -35,18 +36,43 @@ class VerisureController extends BaseController
 
     public function status()
     {
-        info(Carbon::now());
-        return response()->json([
-            "job_id" => "1234657",
-        ]);
-
         $client = new VerisureClient;
         $jobId = $client->status();
         
         return response()->json([
             "job_id" => $jobId,
         ]);
+    }
 
+    public function activate(Request $request)
+    {
+        if ($request->system == "house"){
+            $client = new VerisureClient;
+            $jobId = $client->activate($request->mode);
+
+            return response()->json([
+                "job_id" => $jobId,
+            ]);
+        // }else if ($request->system == "garage"){
+            //TODO
+            // $client = new VerisureClient;
+            // $jobId = $client->activateAnnex();
+        }
+        return response()->json([
+            "error" => "system not supported",
+        ]);
+    }
+
+    public function deactivate(Request $request)
+    {
+        if ($request->system == "house"){
+            $client = new VerisureClient;
+            $jobId = $client->deactivate();
+        }
+        
+        return response()->json([
+            "job_id" => $jobId,
+        ]);
     }
 
     public function jobStatus()
