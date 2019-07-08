@@ -8,7 +8,7 @@ class AuthenticateToken
 {
     public function handle($request, Closure $next, $guard = null)
     {
-        if (config("verisure.auth-token") && ! $request->auth_token == config("verisure.auth-token")) {
+        if (config("verisure.auth.active") && ! $request->auth_token == config("verisure.auth.token")) {
             abort(401);
         }
         return $next($request);
