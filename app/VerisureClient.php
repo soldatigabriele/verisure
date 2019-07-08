@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use \App\Exceptions\LoginException;
+use App\Exceptions\LogoutException;
 use App\Exceptions\StatusException;
 use Illuminate\Support\Facades\Cache;
 use App\Exceptions\ActivationException;
@@ -79,9 +80,41 @@ class VerisureClient
         return $this->session;
     }
 
+    /**
+     * Logout and invalidate the current Session
+     *
+     * @return string
+     */
     public function logout()
     {
+        if ($this->session->isValid()) {
+            $request = new Request(
+                "GET",
+                config("verisure.url") . "/gb/logout",
+                [
+                    "Cookie" => "accept_cookies=1; _session_id=" . $this->session->value,
+                    "Origin" => "https://customers.verisure.co.uk",
+                    "Accept-Encoding" => "gzip, deflate, br",
+                    "X-Csrf-Token" => $this->session->csrf,
+                    "Accept-Language" => "en-GB,en;q=0.9,it-IT;q=0.8,it;q=0.7,en-US;q=0.6",
+                    "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+                    "Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8",
+                    "Accept" => "application/json, text/javascript, */*; q=0.01",
+                    "Referer" => "https://customers.verisure.co.uk/gb/installations",
+                    "X-Requested-With" => "XMLHttpRequest",
+                    "Connection" => "keep-alive",
+                ]);
 
+            // Guzzle will throw an exception if the response is not in the 2xx
+            $response = $this->client->send($request);
+            if ($response->getStatusCode() == 302) {
+                // Delete the session
+                $this->session->delete();
+                return json_decode($response->getBody()->getContents());
+            }
+            throw new LogoutException("Server responded with status code: " . $response->getStatusCode());
+        }
+        return "Your session is already expired";
     }
 
 
