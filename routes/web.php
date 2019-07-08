@@ -11,6 +11,6 @@
 |
 */
 
-Route::get('/', function() {
-    return app()->version();
+Route::get('', function() {
+    return redirect("api/");
 });
