@@ -208,9 +208,14 @@ class VerisureClient
         throw new StatusException("Server responded with status code: " . $response->getStatusCode());
     }
 
-    public function refreshSession()
+    protected function refreshSession()
     {
+        //
+    }
 
+    public function jobStatus()
+    {
+        //
     }
 
     /**

@@ -8,7 +8,7 @@ Route::middleware('auth.token')->group(function () {
     Route::get('/logout', 'VerisureController@logout');
     Route::get('/status', 'VerisureController@status');
     Route::get('/job_status/{jobId}', 'VerisureController@jobStatus');
-    Route::get('/photo/{deviceId}', 'VerisureController@something');
-    Route::get('/activate/{systemId}', 'VerisureController@something');
-    Route::get('/deactivate/{systemId}', 'VerisureController@something');
+    // Route::get('/photo/{deviceId}', 'VerisureController@photo');
+    Route::get('/activate/{systemId}', 'VerisureController@activate');
+    Route::get('/deactivate/{systemId}', 'VerisureController@deactivate');
 });
