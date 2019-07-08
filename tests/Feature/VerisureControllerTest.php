@@ -22,6 +22,18 @@ class VerisureControllerTest extends TestCase
     }
 
     /**
+     * Test token validation can be disabled
+     *
+     * @return void
+     */
+    public function testAuthorizationDisabled()
+    {
+        config()->set(['verisure.auth-token' => false]);
+        $this->json('get', '/api')->assertStatus(200);
+        $this->json('get', '/api', ['auth_token' => 'anything'])->assertStatus(200);
+    }
+
+    /**
      * Test any request should contain the auth-token
      *
      * @return void
