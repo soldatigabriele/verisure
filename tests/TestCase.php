@@ -2,8 +2,11 @@
 
 namespace Tests;
 
+use App\Session;
+use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Handler\MockHandler;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
@@ -36,5 +39,19 @@ abstract class TestCase extends BaseTestCase
         $mock = new MockHandler($responses);
         $handler = HandlerStack::create($mock);
         return new Client(['cookies' => true, 'handler' => $handler]);
+    }
+
+    /**
+     * Create a valid session
+     *
+     * @return Session
+     */
+    public function createSession(): Session
+    {
+        return Session::create([
+            'csrf' => Str::random(20),
+            'value' => Str::random(20),
+            'expires' => Carbon::tomorrow(),
+        ]);
     }
 }

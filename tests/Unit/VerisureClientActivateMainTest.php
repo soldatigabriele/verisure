@@ -60,21 +60,6 @@ class VerisureClientActivateMainTest extends TestCase
     }
 
     /**
-     * Create a valid session
-     *
-     * @return Session
-     */
-    public function createSession(): Session
-    {
-        return Session::create([
-            'csrf' => Str::random(20),
-            'value' => Str::random(20),
-            'expires' => Carbon::tomorrow(),
-        ]);
-
-    }
-
-    /**
      * TearDown the test
      *
      * @return void

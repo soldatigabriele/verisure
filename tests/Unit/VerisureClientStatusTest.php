@@ -23,12 +23,7 @@ class VerisureClientStatusTest extends TestCase
      */
     public function testStatus()
     {
-        // Create a valid token
-        Session::create([
-            'csrf' => Str::random(20),
-            'value' => Str::random(20),
-            'expires' => Carbon::tomorrow(),
-        ]);
+        $this->createSession();
 
         $response = new Response(201, [], json_encode(['job_id' => '4321012345678']));
         $guzzleClient = $this->mockGuzzle($response);
@@ -54,12 +49,7 @@ class VerisureClientStatusTest extends TestCase
     {
         $this->expectException(StatusException::class);
 
-        // Create a valid token
-        Session::create([
-            'csrf' => Str::random(20),
-            'value' => Str::random(20),
-            'expires' => Carbon::tomorrow(),
-        ]);
+        $this->createSession();
 
         // The VerisureClient expects a status 201 when asking for a Status
         $response = new Response(200, []);
