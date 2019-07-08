@@ -53,7 +53,7 @@ class VerisureClient
                     "Accept-Encoding" => "gzip, deflate, br",
                     "Accept-Language" => "en-GB,en;q=0.9,it-IT;q=0.8,it;q=0.7,en-US;q=0.6",
                 ],
-                "utf8=%E2%9C%93&authenticity_token=" . $this->session->csrf . "&verisure_rsi_login%5Bnick%5D=" . config("verisure.username") . "&verisure_rsi_login%5Bpasswd%5D=" . config("verisure.password") . "&button="
+                "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . "&verisure_rsi_login%5Bnick%5D=" . config("verisure.username") . "&verisure_rsi_login%5Bpasswd%5D=" . config("verisure.password") . "&button="
             );
             $this->client->send($loginRequest);
 
@@ -141,7 +141,7 @@ class VerisureClient
                 "X-Requested-With" => "XMLHttpRequest",
                 "Connection" => "keep-alive",
             ],
-            "utf8=%E2%9C%93&authenticity_token=" . $this->session->csrf);
+            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf));
 
         // Guzzle will throw an exception if the response is not in the 2xx
         $response = $this->client->send($request);
@@ -172,7 +172,7 @@ class VerisureClient
                 "X-Requested-With" => "XMLHttpRequest",
                 "Connection" => "keep-alive",
             ],
-            "utf8=%E2%9C%93&authenticity_token=" . $this->session->csrf);
+            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf));
 
         // Guzzle will throw an exception if the response is not in the 2xx
         $response = $this->client->send($request);
