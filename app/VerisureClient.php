@@ -2,11 +2,12 @@
 
 namespace App;
 
+use App\Client;
 use App\Session;
 use DOMDocument;
 use Carbon\Carbon;
-use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\ClientInterface;
 use \App\Exceptions\LoginException;
 use App\Exceptions\LogoutException;
 use App\Exceptions\StatusException;
@@ -23,9 +24,9 @@ class VerisureClient
     /**
      * Constructor of the client
      *
-     * @param Client $client
+     * @param ClientInterface $client
      */
-    public function __construct(Client $client = null)
+    public function __construct(ClientInterface $client = null)
     {
         $this->client = $client ?? (new Client(['cookies' => true]));
 

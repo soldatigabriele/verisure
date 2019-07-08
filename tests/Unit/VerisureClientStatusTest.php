@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use Mockery;
+use App\Request;
 use App\Session;
 use Carbon\Carbon;
 use Tests\TestCase;
