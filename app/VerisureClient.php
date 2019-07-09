@@ -120,6 +120,68 @@ class VerisureClient
 
 
     /**
+     * Activate the annex alarm
+     */
+    public function activateAnnex(string $mode = null)
+    {
+        $request = new Request(
+            "POST",
+            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/twice",
+            [
+                "Cookie" => "accept_cookies=1; _session_id=" . $this->session->value,
+                "Origin" => "https://customers.verisure.co.uk",
+                "Accept-Encoding" => "gzip, deflate, br",
+                "X-Csrf-Token" => $this->session->csrf,
+                "Accept-Language" => "en-GB,en;q=0.9,it-IT;q=0.8,it;q=0.7,en-US;q=0.6",
+                "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+                "Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8",
+                "Accept" => "application/json, text/javascript, */*; q=0.01",
+                "Referer" => "https://customers.verisure.co.uk/gb/installations",
+                "X-Requested-With" => "XMLHttpRequest",
+                "Connection" => "keep-alive",
+            ],
+            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . "&typeAnnex=0&typeAnnex=1");
+
+        // Guzzle will throw an exception if the response is not in the 2xx
+        $response = $this->client->send($request);
+        if ($response->getStatusCode() == 201) {
+            return json_decode($response->getBody()->getContents())->job_id;
+        }
+        throw new ActivationException("Server responded with status code: " . $response->getStatusCode());
+    }
+
+    /**
+     * Deactivate the annex alarm
+     */
+    public function deactivateAnnex(string $mode = null)
+    {
+        $request = new Request(
+            "POST",
+            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/twice",
+            [
+                "Cookie" => "accept_cookies=1; _session_id=" . $this->session->value,
+                "Origin" => "https://customers.verisure.co.uk",
+                "Accept-Encoding" => "gzip, deflate, br",
+                "X-Csrf-Token" => $this->session->csrf,
+                "Accept-Language" => "en-GB,en;q=0.9,it-IT;q=0.8,it;q=0.7,en-US;q=0.6",
+                "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+                "Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8",
+                "Accept" => "application/json, text/javascript, */*; q=0.01",
+                "Referer" => "https://customers.verisure.co.uk/gb/installations",
+                "X-Requested-With" => "XMLHttpRequest",
+                "Connection" => "keep-alive",
+            ],
+            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . "&typeAnnex=0");
+
+        // Guzzle will throw an exception if the response is not in the 2xx
+        $response = $this->client->send($request);
+        if ($response->getStatusCode() == 201) {
+            return json_decode($response->getBody()->getContents())->job_id;
+        }
+        throw new DeactivationException("Server responded with status code: " . $response->getStatusCode());
+    }
+
+    /**
      * Activate the main alarm
      */
     public function activate(string $mode = null)
@@ -200,7 +262,7 @@ class VerisureClient
                 "X-Requested-With" => "XMLHttpRequest",
                 "Connection" => "keep-alive",
             ],
-            "utf8=%E2%9C%93&authenticity_token=" . $this->session->csrf);
+            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf));
 
         // Guzzle will throw an exception if the response is not in the 2xx
         $response = $this->client->send($request);

@@ -14,11 +14,6 @@ class VerisureController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    /**
-     * Login
-     *
-     * @return void
-     */
     public function login()
     {
         try {
@@ -38,7 +33,7 @@ class VerisureController extends BaseController
     {
         $client = new VerisureClient;
         $jobId = $client->status();
-        
+
         return response()->json([
             "job_id" => $jobId,
         ]);
@@ -46,17 +41,16 @@ class VerisureController extends BaseController
 
     public function activate(Request $request)
     {
-        if ($request->system == "house"){
-            $client = new VerisureClient;
-            $jobId = $client->activate($request->mode);
-
+        if ($request->system == "house") {
+            $jobId = (new VerisureClient)->activate($request->mode);
             return response()->json([
                 "job_id" => $jobId,
             ]);
-        // }else if ($request->system == "garage"){
-            //TODO
-            // $client = new VerisureClient;
-            // $jobId = $client->activateAnnex();
+        } else if ($request->system == "garage") {
+            $jobId = (new VerisureClient)->activateAnnex();
+            return response()->json([
+                "job_id" => $jobId,
+            ]);
         }
         return response()->json([
             "error" => "system not supported",
@@ -65,13 +59,19 @@ class VerisureController extends BaseController
 
     public function deactivate(Request $request)
     {
-        if ($request->system == "house"){
-            $client = new VerisureClient;
-            $jobId = $client->deactivate();
+        if ($request->system == "house") {
+            $jobId = (new VerisureClient)->deactivate();
+            return response()->json([
+                "job_id" => $jobId,
+            ]);
+        } else if ($request->system == "garage") {
+            $jobId = (new VerisureClient)->deactivateAnnex();
+            return response()->json([
+                "job_id" => $jobId,
+            ]);
         }
-        
         return response()->json([
-            "job_id" => $jobId,
+            "error" => "system not supported",
         ]);
     }
 
@@ -88,11 +88,6 @@ class VerisureController extends BaseController
         abort(501);
     }
 
-    /**
-     * Logout
-     *
-     * @return void
-     */
     public function logout()
     {
         try {
