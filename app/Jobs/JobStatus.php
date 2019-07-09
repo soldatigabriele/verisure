@@ -48,6 +48,7 @@ class JobStatus implements ShouldQueue
      */
     protected function sendNotification(array $response)
     {
+        info($response['message']);
         $url = 'http://wirepusher.com/send?id=mpgNm&title=' . $response['status'] . '&message=' . $response['message'] . '&type=alarm_activated';
         $notification = new Request("POST", $url);
         $response = $this->guzzle->send($notification);
