@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\VerisureClient;
 use Illuminate\Http\Request;
+use App\Events\StatusCreated;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -38,6 +39,7 @@ class VerisureController extends BaseController
     public function status()
     {
         $jobId = $this->client->status();
+        event(new StatusCreated($jobId));
 
         return response()->json([
             "job_id" => $jobId,
@@ -55,12 +57,14 @@ class VerisureController extends BaseController
         try {
             if ($request->system == "house") {
                 $jobId = $this->client->activate($request->mode);
+                event(new StatusCreated($jobId));
                 return response()->json([
                     "job_id" => $jobId,
                 ]);
             }
             // System is garage
             $jobId = $this->client->activateAnnex();
+            event(new StatusCreated($jobId));
             return response()->json([
                 "job_id" => $jobId,
             ]);
@@ -75,11 +79,13 @@ class VerisureController extends BaseController
     {
         if ($request->system == "house") {
             $jobId = $this->client->deactivate();
+            event(new StatusCreated($jobId));
             return response()->json([
                 "job_id" => $jobId,
             ]);
         } else if ($request->system == "garage") {
             $jobId = $this->client->deactivateAnnex();
+            event(new StatusCreated($jobId));
             return response()->json([
                 "job_id" => $jobId,
             ]);
@@ -87,21 +93,6 @@ class VerisureController extends BaseController
         return response()->json([
             "error" => "system not supported",
         ]);
-    }
-
-    public function jobStatus(Request $request)
-    {
-        try {
-            $response = $this->client->jobStatus($request->jobId);
-            return response()->json([
-                'status' => $response['status'],
-                'message' => $response['message'],
-            ]);
-        } catch (\Throwable $th) {
-            return response()->json([
-                'status' => $th->getMessage(),
-            ], 400);
-        }
     }
 
     public function logout()

@@ -5,13 +5,21 @@ namespace Tests\Feature;
 use Mockery;
 use App\Session;
 use Tests\TestCase;
+use App\Jobs\JobStatus;
 use App\VerisureClient;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class VerisureControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function setUp(): void
+    {
+        parent::setUp();
+        Queue::fake();
+    }
 
     /**
      * Test requests without auth-token should fail
@@ -81,11 +89,26 @@ class VerisureControllerTest extends TestCase
     public function testStatus()
     {
         $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('status')->andReturn("job_id_123");
+        $mock->shouldReceive('status')->andReturn($jobId  = Str::random(20));
         $this->app->instance(VerisureClient::class, $mock);
 
         $response = $this->json('get', '/api/status')->assertStatus(200);
-        $this->assertEquals(json_decode($response->getContent())->job_id, 'job_id_123');
+        $this->assertEquals(json_decode($response->getContent())->job_id, $jobId);
+        $this->assertJobStatusPushed($jobId);
+    }
+
+    /**
+     * Check the job was pushed with the correct job Id
+     *
+     * @param [type] $jobId
+     * @return void
+     */
+    public function assertJobStatusPushed($jobId)
+    {
+        Queue::assertPushed(JobStatus::class, function ($job) use ($jobId) {
+            return $job->jobId === $jobId;
+        });
+
     }
 
     /**
@@ -98,11 +121,12 @@ class VerisureControllerTest extends TestCase
         $mock = Mockery::mock(VerisureClient::class);
 
         foreach (["full", "day", "night"] as $mode) {
-            $mock->shouldReceive('activate')->with($mode)->andReturn("job_id_123");
+            $mock->shouldReceive('activate')->with($mode)->andReturn($jobId  = Str::random(20));
             $this->app->instance(VerisureClient::class, $mock);
 
             $response = $this->json('get', '/api/activate/house/' . $mode)->assertStatus(200);
-            $this->assertEquals(json_decode($response->getContent())->job_id, 'job_id_123');
+            $this->assertEquals(json_decode($response->getContent())->job_id, $jobId);
+            $this->assertJobStatusPushed($jobId);
         }
     }
 
@@ -114,11 +138,12 @@ class VerisureControllerTest extends TestCase
     public function testActivateGarage()
     {
         $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('activateAnnex')->andReturn("job_id_123");
+        $mock->shouldReceive('activateAnnex')->andReturn($jobId  = Str::random(20));
         $this->app->instance(VerisureClient::class, $mock);
 
         $response = $this->json('get', '/api/activate/garage')->assertStatus(200);
-        $this->assertEquals(json_decode($response->getContent())->job_id, 'job_id_123');
+        $this->assertEquals(json_decode($response->getContent())->job_id, $jobId);
+        $this->assertJobStatusPushed($jobId);
     }
 
     /**
@@ -129,11 +154,12 @@ class VerisureControllerTest extends TestCase
     public function testDeactivate()
     {
         $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('deactivate')->andReturn("job_id_123");
+        $mock->shouldReceive('deactivate')->andReturn($jobId  = Str::random(20));
         $this->app->instance(VerisureClient::class, $mock);
 
         $response = $this->json('get', '/api/deactivate/house/')->assertStatus(200);
-        $this->assertEquals(json_decode($response->getContent())->job_id, 'job_id_123');
+        $this->assertEquals(json_decode($response->getContent())->job_id, $jobId);
+        $this->assertJobStatusPushed($jobId);
     }
 
     /**
@@ -144,28 +170,12 @@ class VerisureControllerTest extends TestCase
     public function testDeactivateGarage()
     {
         $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('deactivateAnnex')->andReturn("job_id_123");
+        $mock->shouldReceive('deactivateAnnex')->andReturn($jobId  = Str::random(20));
         $this->app->instance(VerisureClient::class, $mock);
 
         $response = $this->json('get', '/api/deactivate/garage')->assertStatus(200);
-        $this->assertEquals(json_decode($response->getContent())->job_id, 'job_id_123');
-    }
-
-    /**
-     * Test jobStatus method
-     *
-     * @return void
-     */
-    public function testJobStatus()
-    {
-        $session = $this->createSession();
-
-        $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('jobStatus')->with('job-id-test')->andReturn(["status" => "completed", "message" => "Alarm activated"]);
-        $this->app->instance(VerisureClient::class, $mock);
-
-        $response = $this->json('get', '/api/job_status/job-id-test')->assertStatus(200);
-        $this->assertEquals("completed", json_decode($response->getContent())->status);
+        $this->assertEquals(json_decode($response->getContent())->job_id, $jobId);
+        $this->assertJobStatusPushed($jobId);
     }
 
     public function tearDown(): void

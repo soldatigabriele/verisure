@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use GuzzleHttp\Client;
 use App\VerisureClient;
 use Illuminate\Support\ServiceProvider;
 
