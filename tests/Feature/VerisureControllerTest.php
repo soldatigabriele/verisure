@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use Mockery;
 use App\Session;
-use Carbon\Carbon;
 use Tests\TestCase;
 use App\VerisureClient;
 use Illuminate\Support\Str;
@@ -51,11 +50,11 @@ class VerisureControllerTest extends TestCase
     public function testLogin()
     {
         $session = $this->createSession();
-        
+
         $mock = Mockery::mock(VerisureClient::class);
         $mock->shouldReceive('getSession')->andReturn($session);
         $this->app->instance(VerisureClient::class, $mock);
-        
+
         $response = $this->json('get', '/api/login')->assertStatus(200);
         $this->assertEquals(json_decode($response->getContent())->session->value, $session->value);
     }
@@ -70,7 +69,7 @@ class VerisureControllerTest extends TestCase
         $mock = Mockery::mock(VerisureClient::class);
         $mock->shouldReceive('logout');
         $this->app->instance(VerisureClient::class, $mock);
-        
+
         $response = $this->json('get', '/api/logout')->assertStatus(200);
     }
 
@@ -84,7 +83,7 @@ class VerisureControllerTest extends TestCase
         $mock = Mockery::mock(VerisureClient::class);
         $mock->shouldReceive('status')->andReturn("job_id_123");
         $this->app->instance(VerisureClient::class, $mock);
-        
+
         $response = $this->json('get', '/api/status')->assertStatus(200);
         $this->assertEquals(json_decode($response->getContent())->job_id, 'job_id_123');
     }
@@ -97,14 +96,14 @@ class VerisureControllerTest extends TestCase
     public function testActivate()
     {
         $mock = Mockery::mock(VerisureClient::class);
-        
-        foreach (["full", "day", "night"] as $mode){
+
+        foreach (["full", "day", "night"] as $mode) {
             $mock->shouldReceive('activate')->with($mode)->andReturn("job_id_123");
             $this->app->instance(VerisureClient::class, $mock);
-            
+
             $response = $this->json('get', '/api/activate/house/' . $mode)->assertStatus(200);
             $this->assertEquals(json_decode($response->getContent())->job_id, 'job_id_123');
-        } 
+        }
     }
 
     /**
@@ -117,7 +116,7 @@ class VerisureControllerTest extends TestCase
         $mock = Mockery::mock(VerisureClient::class);
         $mock->shouldReceive('activateAnnex')->andReturn("job_id_123");
         $this->app->instance(VerisureClient::class, $mock);
-        
+
         $response = $this->json('get', '/api/activate/garage')->assertStatus(200);
         $this->assertEquals(json_decode($response->getContent())->job_id, 'job_id_123');
     }
@@ -132,7 +131,7 @@ class VerisureControllerTest extends TestCase
         $mock = Mockery::mock(VerisureClient::class);
         $mock->shouldReceive('deactivate')->andReturn("job_id_123");
         $this->app->instance(VerisureClient::class, $mock);
-        
+
         $response = $this->json('get', '/api/deactivate/house/')->assertStatus(200);
         $this->assertEquals(json_decode($response->getContent())->job_id, 'job_id_123');
     }
@@ -147,9 +146,26 @@ class VerisureControllerTest extends TestCase
         $mock = Mockery::mock(VerisureClient::class);
         $mock->shouldReceive('deactivateAnnex')->andReturn("job_id_123");
         $this->app->instance(VerisureClient::class, $mock);
-        
+
         $response = $this->json('get', '/api/deactivate/garage')->assertStatus(200);
         $this->assertEquals(json_decode($response->getContent())->job_id, 'job_id_123');
+    }
+
+    /**
+     * Test jobStatus method
+     *
+     * @return void
+     */
+    public function testJobStatus()
+    {
+        $session = $this->createSession();
+
+        $mock = Mockery::mock(VerisureClient::class);
+        $mock->shouldReceive('jobStatus')->with('job-id-test')->andReturn(["status" => "completed", "message" => "Alarm activated"]);
+        $this->app->instance(VerisureClient::class, $mock);
+
+        $response = $this->json('get', '/api/job_status/job-id-test')->assertStatus(200);
+        $this->assertEquals("completed", json_decode($response->getContent())->status);
     }
 
     public function tearDown(): void

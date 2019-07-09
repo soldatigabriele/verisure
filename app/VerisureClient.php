@@ -11,7 +11,7 @@ use GuzzleHttp\ClientInterface;
 use \App\Exceptions\LoginException;
 use App\Exceptions\LogoutException;
 use App\Exceptions\StatusException;
-use Illuminate\Support\Facades\Cache;
+use App\Exceptions\JobStatusException;
 use App\Exceptions\ActivationException;
 use App\Exceptions\DeactivationException;
 
@@ -117,7 +117,6 @@ class VerisureClient
         }
         return "Your session is already expired";
     }
-
 
     /**
      * Activate the annex alarm
@@ -277,9 +276,47 @@ class VerisureClient
         //
     }
 
-    public function jobStatus()
+    public function jobStatus(string $jobId)
     {
-        //
+        $counter = 0;
+        $status = "working";
+        while ($status == "working") {
+            
+            if ($counter > 5) {
+                throw new JobStatusException("Too many attempts");
+            }
+
+            $request = new Request(
+                "GET",
+                config("verisure.url") . "/es/remote/job_status/" . $jobId,
+                [
+                "Cookie" => "accept_cookies=1; _session_id=" . $this->session->value,
+                "Accept-Encoding" => "gzip, deflate, br",
+                "X-Csrf-Token" => $this->session->csrf,
+                "Accept-Language" => "en-GB,en;q=0.9,it-IT;q=0.8,it;q=0.7,en-US;q=0.6",
+                "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
+                "Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8",
+                "Accept" => "application/json, text/javascript, */*; q=0.01",
+                "Referer" => "https://customers.verisure.co.uk/gb/installations",
+                "X-Requested-With" => "XMLHttpRequest",
+                "Connection" => "keep-alive",
+                ],
+                "");
+
+            $response = $this->client->send($request);
+            $response = json_decode($response->getBody()->getContents());
+            $status = $response->status;
+            $counter++;
+            // In production, add a timer between the requests
+            if (env("APP_ENV") !== "testing" && $status !== "completed") {
+                sleep(3);
+            }
+        }
+
+        if ($status == "completed") {
+            return ["status" => $status, "message" => $response->message->message];
+        }
+        throw new JobStatusException("Error in the response: " . $status);
     }
 
     /**

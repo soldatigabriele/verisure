@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
 use App\VerisureClient;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -90,17 +89,19 @@ class VerisureController extends BaseController
         ]);
     }
 
-    public function jobStatus()
+    public function jobStatus(Request $request)
     {
-        info("job status");
-        info(Carbon::now());
-        \Illuminate\Support\Facades\Cache::increment('requests');
-        if (\Illuminate\Support\Facades\Cache::get('requests') > 5) {
+        try {
+            $response = $this->client->jobStatus($request->jobId);
             return response()->json([
-                'status' => 'activated',
+                'status' => $response['status'],
+                'message' => $response['message'],
             ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => $th->getMessage(),
+            ], 400);
         }
-        abort(501);
     }
 
     public function logout()
