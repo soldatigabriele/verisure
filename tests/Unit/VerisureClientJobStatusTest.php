@@ -63,7 +63,7 @@ class VerisureClientJobStatusTest extends TestCase
         // Create a valid session
         $this->createSession();
 
-        for ($i=0; $i < 6; $i++) { 
+        for ($i = 0; $i < config('verisure.status_job.max_calls') + 1; $i++) {
             $responses[] = new Response(200, [], json_encode(["time" => 1562586383, "status" => "working", "uuid" => "cda28c2bfa31eeb833d2077f3fbf7695", "options" => []]));
         }
         $guzzleClient = $this->mockGuzzle($responses);
