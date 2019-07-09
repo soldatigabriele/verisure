@@ -49,7 +49,7 @@ class JobStatus implements ShouldQueue
     protected function sendNotification(array $response)
     {
         info($response['message']);
-        $url = 'http://wirepusher.com/send?id=mpgNm&title=' . $response['status'] . '&message=' . $response['message'] . '&type=alarm_activated';
+        $url = 'https://maker.ifttt.com/trigger/alarm_status/with/key/'.config('verisure.notification_channel').'?value1='. $response['status'] .' &value2=' . $response['message'];
         $notification = new Request("POST", $url);
         $response = $this->guzzle->send($notification);
         return json_decode($response->getBody()->getContents(), true);
