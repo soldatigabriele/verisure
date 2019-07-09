@@ -31,9 +31,7 @@ class VerisureController extends BaseController
 
     public function status()
     {
-        $client = new VerisureClient;
-        $jobId = $client->status();
-
+        $jobId = (new VerisureClient)->status();
         return response()->json([
             "job_id" => $jobId,
         ]);
@@ -41,20 +39,29 @@ class VerisureController extends BaseController
 
     public function activate(Request $request)
     {
-        if ($request->system == "house") {
-            $jobId = (new VerisureClient)->activate($request->mode);
+        if (!in_array($request->system, ["house", "garage"])) {
             return response()->json([
-                "job_id" => $jobId,
+                'error' => 'system not supported, try with "/house" or "/garage"',
             ]);
-        } else if ($request->system == "garage") {
+        }
+
+        try {
+            if ($request->system == "house") {
+                $jobId = (new VerisureClient)->activate($request->mode);
+                return response()->json([
+                    "job_id" => $jobId,
+                ]);
+            }
+            // System is garage
             $jobId = (new VerisureClient)->activateAnnex();
             return response()->json([
                 "job_id" => $jobId,
             ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => $th->getMessage(),
+            ], 400);
         }
-        return response()->json([
-            "error" => "system not supported",
-        ]);
     }
 
     public function deactivate(Request $request)
@@ -91,8 +98,7 @@ class VerisureController extends BaseController
     public function logout()
     {
         try {
-            $client = new VerisureClient;
-            $client->logout();
+            (new VerisureClient)->logout();
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => $th->getMessage(),
