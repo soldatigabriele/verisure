@@ -280,7 +280,7 @@ class VerisureClient
     {
         $counter = 0;
         $status = "working";
-        while ($status == "working") {
+        while ($status == "working" || $status == "queued") {
             
             if ($counter > 5) {
                 throw new JobStatusException("Too many attempts");
