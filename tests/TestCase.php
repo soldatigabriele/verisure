@@ -23,7 +23,10 @@ abstract class TestCase extends BaseTestCase
     public function setUp(): void
     {
         parent::setUp();
-        config()->set(["verisure.url" => "http://verisure-example.test"]);
+        config()->set([
+            "verisure.url" => "http://verisure-example.test",
+            "verisure.auth.active" => false,
+        ]);
     }
 
     /**

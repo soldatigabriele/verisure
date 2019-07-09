@@ -14,13 +14,20 @@ class VerisureController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
+    protected $client;
+
+    public function __construct(VerisureClient $client)
+    {
+        $this->client = $client;
+    }
+
     public function login()
     {
         try {
-            $session = (new VerisureClient)->getSession();
+            $session = $this->client->getSession();
             return response()->json([
                 'status' => 'success',
-                'session_id' => $session->toArray(),
+                'session' => $session->toArray(),
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([
@@ -31,7 +38,8 @@ class VerisureController extends BaseController
 
     public function status()
     {
-        $jobId = (new VerisureClient)->status();
+        $jobId = $this->client->status();
+
         return response()->json([
             "job_id" => $jobId,
         ]);
@@ -47,13 +55,13 @@ class VerisureController extends BaseController
 
         try {
             if ($request->system == "house") {
-                $jobId = (new VerisureClient)->activate($request->mode);
+                $jobId = $this->client->activate($request->mode);
                 return response()->json([
                     "job_id" => $jobId,
                 ]);
             }
             // System is garage
-            $jobId = (new VerisureClient)->activateAnnex();
+            $jobId = $this->client->activateAnnex();
             return response()->json([
                 "job_id" => $jobId,
             ]);
@@ -67,12 +75,12 @@ class VerisureController extends BaseController
     public function deactivate(Request $request)
     {
         if ($request->system == "house") {
-            $jobId = (new VerisureClient)->deactivate();
+            $jobId = $this->client->deactivate();
             return response()->json([
                 "job_id" => $jobId,
             ]);
         } else if ($request->system == "garage") {
-            $jobId = (new VerisureClient)->deactivateAnnex();
+            $jobId = $this->client->deactivateAnnex();
             return response()->json([
                 "job_id" => $jobId,
             ]);
@@ -98,7 +106,7 @@ class VerisureController extends BaseController
     public function logout()
     {
         try {
-            (new VerisureClient)->logout();
+            $this->client->logout();
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => $th->getMessage(),

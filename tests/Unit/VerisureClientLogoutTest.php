@@ -19,11 +19,11 @@ class VerisureClientLogoutTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Test the main alarm can be activated
+     * Test can logout from a session
      *
      * @return void
      */
-    public function testActivate()
+    public function testLogout()
     {
         // Create a valid session
         $this->createSession();
