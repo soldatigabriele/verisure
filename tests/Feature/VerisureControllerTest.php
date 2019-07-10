@@ -28,14 +28,11 @@ class VerisureControllerTest extends TestCase
      */
     public function testAuthorizationFails()
     {
+        $this->app->instance(VerisureClient::class, Mockery::mock(VerisureClient::class));
         config()->set(['verisure.auth.active' => true]);
         $routes = ['', 'login', 'logout', 'status', 'activate/house', 'deactivate/garage'];
         foreach ($routes as $route) {
-            try {
-                $this->json('get', '/api/' . $route)->assertStatus(401);
-            } catch (\Throwable $th) {
-                //
-            }
+            $this->json('get', '/api/' . $route)->assertStatus(401);
         }
     }
 
@@ -89,7 +86,7 @@ class VerisureControllerTest extends TestCase
     public function testStatus()
     {
         $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('status')->andReturn($jobId  = Str::random(20));
+        $mock->shouldReceive('status')->andReturn($jobId = Str::random(20));
         $this->app->instance(VerisureClient::class, $mock);
 
         $response = $this->json('get', '/api/status')->assertStatus(200);
@@ -121,7 +118,7 @@ class VerisureControllerTest extends TestCase
         $mock = Mockery::mock(VerisureClient::class);
 
         foreach (["full", "day", "night"] as $mode) {
-            $mock->shouldReceive('activate')->with($mode)->andReturn($jobId  = Str::random(20));
+            $mock->shouldReceive('activate')->with($mode)->andReturn($jobId = Str::random(20));
             $this->app->instance(VerisureClient::class, $mock);
 
             $response = $this->json('get', '/api/activate/house/' . $mode)->assertStatus(200);
@@ -138,7 +135,7 @@ class VerisureControllerTest extends TestCase
     public function testActivateGarage()
     {
         $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('activateAnnex')->andReturn($jobId  = Str::random(20));
+        $mock->shouldReceive('activateAnnex')->andReturn($jobId = Str::random(20));
         $this->app->instance(VerisureClient::class, $mock);
 
         $response = $this->json('get', '/api/activate/garage')->assertStatus(200);
@@ -154,7 +151,7 @@ class VerisureControllerTest extends TestCase
     public function testDeactivate()
     {
         $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('deactivate')->andReturn($jobId  = Str::random(20));
+        $mock->shouldReceive('deactivate')->andReturn($jobId = Str::random(20));
         $this->app->instance(VerisureClient::class, $mock);
 
         $response = $this->json('get', '/api/deactivate/house/')->assertStatus(200);
@@ -170,7 +167,7 @@ class VerisureControllerTest extends TestCase
     public function testDeactivateGarage()
     {
         $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('deactivateAnnex')->andReturn($jobId  = Str::random(20));
+        $mock->shouldReceive('deactivateAnnex')->andReturn($jobId = Str::random(20));
         $this->app->instance(VerisureClient::class, $mock);
 
         $response = $this->json('get', '/api/deactivate/garage')->assertStatus(200);

@@ -31,7 +31,7 @@ class JobStatusTest extends TestCase
         $job->handle($verisureClient, $wirePusher);
         $this->addToAssertionCount(1);
     }
-
+    
     public function tearDown(): void
     {
         Mockery::close();
