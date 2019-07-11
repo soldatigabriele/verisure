@@ -40,7 +40,7 @@ class VerisureClientLoginTest extends TestCase
             new Response(200, ['Set-Cookie' => '_session_id=test-session-id; path=/; expires=Thu, 04-Jul-2019 20:24:57 GMT; HttpOnly'], $this->getDashboardPageHTML()),
         ];
         $guzzleClient = $this->mockGuzzle($responses);
-        new VerisureClient($guzzleClient);
+        (new VerisureClient($guzzleClient))->login();
 
         // The CSRF Token should be stored in the DB with the session
         $this->assertDatabaseHas('sessions', [
@@ -63,7 +63,7 @@ class VerisureClientLoginTest extends TestCase
             new Response(200, ['Set-Cookie' => 'wrong_cookie=test-session-id; path=/; expires=Thu, 04-Jul-2019 20:24:57 GMT; HttpOnly'], $this->getDashboardPageHTML()),
         ];
         $guzzleClient = $this->mockGuzzle($responses);
-        new VerisureClient($guzzleClient);
+        (new VerisureClient($guzzleClient))->login();
 
         $this->assertDatabaseHas('session_cookies', ['value' => 'test-session-id']);
     }
@@ -80,12 +80,14 @@ class VerisureClientLoginTest extends TestCase
             'value' => Str::random(20),
             'expires' => Carbon::tomorrow(),
         ]);
+        $oldCount = Session::count();
 
         $spy = Mockery::spy(Client::class);
         $verisure = new VerisureClient($spy);
 
         $spy->shouldNotHaveReceived('send');
-        $this->assertTrue($verisure->getSession()->is($session));
+        $this->assertTrue(Session::latest()->first()->is($session));
+        $this->assertEquals(Session::count(), $oldCount);
     }
 
     /**

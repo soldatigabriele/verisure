@@ -29,13 +29,24 @@ class VerisureClient
     public function __construct(ClientInterface $client = null)
     {
         $this->client = $client ?? (new Client(['cookies' => true]));
+    }
 
-        // If we have a valid cookie, there is no need to login again
-        if (optional($session = Session::latest()->first())->isValid()) {
-            $this->session = $session;
-            return $this;
+    /**
+     * Check if we have a valid session, otherwise login
+     *
+     * @return void
+     */
+    protected function setSession(): void
+    {
+        if (optional($this->session = Session::latest()->first())->isValid()) {
+            return;
         }
+        $this->login();
+        return;
+    }
 
+    public function login()
+    {
         // Get the Authenticity Token from the login page (CSRF token)
         if ($this->session = $this->getAuthenticityToken()) {
             $loginRequest = new Request(
@@ -70,22 +81,13 @@ class VerisureClient
     }
 
     /**
-     * Return the current active session
-     *
-     * @return Session
-     */
-    public function getSession(): Session
-    {
-        return $this->session;
-    }
-
-    /**
      * Logout and invalidate the current Session
      *
      * @return string
      */
     public function logout()
     {
+        $this->setSession();
         if ($this->session->isValid()) {
             $request = new Request("GET", config("verisure.url") . "/gb/logout", $this->headers());
 
@@ -106,6 +108,7 @@ class VerisureClient
      */
     public function activateAnnex(string $mode = null)
     {
+        $this->setSession();
         $request = new Request(
             "POST",
             config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/twice",
@@ -125,6 +128,7 @@ class VerisureClient
      */
     public function deactivateAnnex(string $mode = null)
     {
+        $this->setSession();
         $request = new Request(
             "POST",
             config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/twice",
@@ -144,6 +148,7 @@ class VerisureClient
      */
     public function activate(string $mode = null)
     {
+        $this->setSession();
         $mode = in_array($mode, ['house', 'night', 'day']) ? $mode : 'house';
         $request = new Request(
             "POST",
@@ -164,6 +169,7 @@ class VerisureClient
      */
     public function deactivate()
     {
+        $this->setSession();
         $request = new Request(
             "POST",
             config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/unlock",
@@ -180,6 +186,7 @@ class VerisureClient
 
     public function status()
     {
+        $this->setSession();
         $request = new Request(
             "POST",
             config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/status",
@@ -201,8 +208,9 @@ class VerisureClient
 
     public function jobStatus(string $jobId)
     {
+        $this->setSession();
         $counter = 0;
-        $status = "working";
+        $status = "queued";
         while ($status == "working" || $status == "queued") {
             if ($counter > config('verisure.status_job.max_calls')) {
                 throw new JobStatusException("Too many attempts");
@@ -285,7 +293,6 @@ class VerisureClient
                 ]);
             }
         }
-
         throw new \Exception("Autenticity Token not found");
     }
 }

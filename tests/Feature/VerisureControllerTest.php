@@ -57,11 +57,10 @@ class VerisureControllerTest extends TestCase
         $session = $this->createSession();
 
         $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('getSession')->andReturn($session);
+        $mock->shouldReceive('login')->andReturn($session);
         $this->app->instance(VerisureClient::class, $mock);
 
-        $response = $this->json('get', '/api/login')->assertStatus(200);
-        $this->assertEquals(json_decode($response->getContent())->session->value, $session->value);
+        $this->json('get', '/api/login')->assertStatus(200);
     }
 
     /**

@@ -24,10 +24,9 @@ class VerisureController extends BaseController
     public function login()
     {
         try {
-            $session = $this->client->getSession();
+            $this->client->login();
             return response()->json([
                 'status' => 'success',
-                'session' => $session->toArray(),
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([
