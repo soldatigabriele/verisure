@@ -33,6 +33,7 @@ class VerisureClientJobStatusTest extends TestCase
         $message = $client->jobStatus(Str::random(20));
 
         $this->assertEquals('completed', $message['status']);
+        $this->assertEquals(3, \App\Response::count());
     }
 
     /**
@@ -50,6 +51,7 @@ class VerisureClientJobStatusTest extends TestCase
         $guzzleClient = $this->mockGuzzle($responses);
         $client = new VerisureClient($guzzleClient);
         $client->jobStatus(Str::random(20));
+        $this->assertEquals(1, \App\Response::count());
     }
 
     /**

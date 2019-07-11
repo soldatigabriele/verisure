@@ -33,13 +33,7 @@ class VerisureClientDeactivateAnnexTest extends TestCase
         $jobId = $client->deactivateAnnex();
 
         $this->assertEquals('4321012345678', $jobId);
-
-        // TODO create the table for the job_statuses
-        // $this->assertDatabaseHas('job_statuses', [
-        //     'jobId' => '4321012345678',
-        //     'requestId' => 'something',
-        //     'status' => 1,
-        // ]);
+        $this->assertEquals(1, \App\Response::count());
     }
 
     /**

@@ -7,7 +7,10 @@ use App\Session;
 use DOMDocument;
 use Carbon\Carbon;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
+use App\Request as LogRequest;
 use GuzzleHttp\ClientInterface;
+use App\Response as LogResponse;
 use \App\Exceptions\LoginException;
 use App\Exceptions\LogoutException;
 use App\Exceptions\StatusException;
@@ -66,7 +69,8 @@ class VerisureClient
                 ],
                 "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . "&verisure_rsi_login%5Bnick%5D=" . config("verisure.username") . "&verisure_rsi_login%5Bpasswd%5D=" . config("verisure.password") . "&button="
             );
-            $this->client->send($loginRequest);
+            $response = $this->client->send($loginRequest);
+            $this->logResponse($response, $response->getBody()->getContents());
 
             // Store the session cookie
             if ($cookie = $this->client->getConfig('cookies')->getCookieByName('_session_id')) {
@@ -93,10 +97,12 @@ class VerisureClient
 
             // Guzzle will throw an exception if the response is not in the 2xx
             $response = $this->client->send($request);
+            $body = $response->getBody()->getContents();
+            $this->logResponse($response, $body);
             if ($response->getStatusCode() == 302) {
                 // Delete the session
                 $this->session->delete();
-                return json_decode($response->getBody()->getContents());
+                return json_decode($body);
             }
             throw new LogoutException("Server responded with status code: " . $response->getStatusCode());
         }
@@ -117,8 +123,11 @@ class VerisureClient
 
         // Guzzle will throw an exception if the response is not in the 2xx
         $response = $this->client->send($request);
+        $body = $response->getBody()->getContents();
+        $this->logResponse($response, $body);
+
         if ($response->getStatusCode() == 201) {
-            return json_decode($response->getBody()->getContents())->job_id;
+            return json_decode($body)->job_id;
         }
         throw new ActivationException("Server responded with status code: " . $response->getStatusCode());
     }
@@ -137,8 +146,12 @@ class VerisureClient
 
         // Guzzle will throw an exception if the response is not in the 2xx
         $response = $this->client->send($request);
+        // TODO this $response->getBody() gets unset in the logRespons ??
+        $body = $response->getBody()->getContents();
+        $this->logResponse($response, $body);
+
         if ($response->getStatusCode() == 201) {
-            return json_decode($response->getBody()->getContents())->job_id;
+            return json_decode($body)->job_id;
         }
         throw new DeactivationException("Server responded with status code: " . $response->getStatusCode());
     }
@@ -158,8 +171,11 @@ class VerisureClient
 
         // Guzzle will throw an exception if the response is not in the 2xx
         $response = $this->client->send($request);
+        $body = $response->getBody()->getContents();
+        $this->logResponse($response, $body);
+
         if ($response->getStatusCode() == 201) {
-            return json_decode($response->getBody()->getContents())->job_id;
+            return json_decode($body)->job_id;
         }
         throw new ActivationException("Server responded with status code: " . $response->getStatusCode());
     }
@@ -178,8 +194,11 @@ class VerisureClient
 
         // Guzzle will throw an exception if the response is not in the 2xx
         $response = $this->client->send($request);
+        $body = $response->getBody()->getContents();
+        $this->logResponse($response, $body);
+
         if ($response->getStatusCode() == 201) {
-            return json_decode($response->getBody()->getContents())->job_id;
+            return json_decode($body)->job_id;
         }
         throw new DeactivationException("Server responded with status code: " . $response->getStatusCode());
     }
@@ -195,8 +214,11 @@ class VerisureClient
 
         // Guzzle will throw an exception if the response is not in the 2xx
         $response = $this->client->send($request);
+        $body = $response->getBody()->getContents();
+        $this->logResponse($response, $body);
+
         if ($response->getStatusCode() == 201) {
-            return json_decode($response->getBody()->getContents())->job_id;
+            return json_decode($body)->job_id;
         }
         throw new StatusException("Server responded with status code: " . $response->getStatusCode());
     }
@@ -221,7 +243,10 @@ class VerisureClient
             $request = new Request("GET", config("verisure.url") . "/es/remote/job_status/" . $jobId, $headers, "");
 
             $response = $this->client->send($request);
-            $response = json_decode($response->getBody()->getContents());
+            $body = $response->getBody()->getContents();
+            $this->logResponse($response, $body);
+            $response = json_decode($body);
+
             $status = $response->status;
             $counter++;
             // In production, add a timer between the requests
@@ -294,5 +319,24 @@ class VerisureClient
             }
         }
         throw new \Exception("Autenticity Token not found");
+    }
+
+    /**
+     * Log the response from the server
+     *
+     * @param \GuzzleHttp\Psr7\Response $response
+     * @return void
+     */
+    protected function logResponse(Response $response, $body)
+    {
+        $log = new LogResponse;
+        $log->status = $response->getStatusCode();
+        $log->headers = $response->getHeaders();
+        $log->body = $body;
+
+        if ($request = LogRequest::latest()->first()) {
+            $request->response()->save($log);
+        }
+        $log->save();
     }
 }

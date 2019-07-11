@@ -3,12 +3,8 @@
 namespace Tests\Unit;
 
 use Mockery;
-use App\Request;
-use App\Session;
-use Carbon\Carbon;
 use Tests\TestCase;
 use App\VerisureClient;
-use Illuminate\Support\Str;
 use GuzzleHttp\Psr7\Response;
 use App\Exceptions\StatusException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -32,13 +28,6 @@ class VerisureClientStatusTest extends TestCase
         $jobId = $client->status();
 
         $this->assertEquals('4321012345678', $jobId);
-
-        // TODO create the table for the job_statuses
-        // $this->assertDatabaseHas('job_statuses', [
-        //     'jobId' => '4321012345678',
-        //     'requestId' => 'something',
-        //     'status' => 1,
-        // ]);
     }
 
     /**
