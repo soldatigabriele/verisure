@@ -1,18 +1,18 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit\Jobs;
 
 use Mockery;
 use App\Session;
 use Tests\TestCase;
+use App\Jobs\Status;
 use GuzzleHttp\Client;
-use App\Jobs\JobStatus;
 use App\VerisureClient;
 use Illuminate\Support\Str;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class JobStatusTest extends TestCase
+class StatusTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -27,7 +27,7 @@ class JobStatusTest extends TestCase
         $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => 'test', 'status' => 'ok']);
         $wirePusher = $this->mockGuzzle(new Response(200, [], json_encode(['status' => 'ok'])));
         // ->andReturn(["status" => "completed", "message" => "Alarm activated"]);
-        $job = new JobStatus('job-id-test');
+        $job = new Status('job-id-test');
         $job->handle($verisureClient, $wirePusher);
         $this->addToAssertionCount(1);
     }

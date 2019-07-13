@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\Login;
+use App\Jobs\Activate;
 use App\VerisureClient;
+use App\Jobs\ActivateAnnex;
+use App\Jobs\ActivateHouse;
 use Illuminate\Http\Request;
 use App\Events\StatusCreated;
+use App\Jobs\DeactivateAnnex;
+use App\Jobs\DeactivateHouse;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -21,20 +27,26 @@ class VerisureController extends BaseController
         $this->client = $client;
     }
 
+    /**
+     * Log in the Verisure app
+     *
+     * @return void
+     */
     public function login()
     {
-        try {
-            $this->client->login();
-            return response()->json([
-                'status' => 'success',
-            ], 200);
-        } catch (\Throwable $th) {
-            return response()->json([
-                'status' => $th->getMessage(),
-            ], 400);
-        }
+        // Dispatch the job
+        dispatch(new Login);
+
+        return response()->json([
+            'status' => 'accepted',
+        ], 202);
     }
 
+    /**
+     * Get the status of the alarm
+     *
+     * @return void
+     */
     public function status()
     {
         $jobId = $this->client->status();
@@ -45,55 +57,59 @@ class VerisureController extends BaseController
         ]);
     }
 
+    /**
+     * Request the activation of a system
+     *
+     * @param Request $request
+     * @return void
+     */
     public function activate(Request $request)
     {
         if (!in_array($request->system, ["house", "garage"])) {
             return response()->json([
                 'error' => 'system not supported, try with "/house" or "/garage"',
-            ]);
-        }
-
-        try {
-            if ($request->system == "house") {
-                $jobId = $this->client->activate($request->mode);
-                event(new StatusCreated($jobId));
-                return response()->json([
-                    "job_id" => $jobId,
-                ]);
-            }
-            // System is garage
-            $jobId = $this->client->activateAnnex();
-            event(new StatusCreated($jobId));
-            return response()->json([
-                "job_id" => $jobId,
-            ]);
-        } catch (\Throwable $th) {
-            return response()->json([
-                'status' => $th->getMessage(),
             ], 400);
         }
-    }
 
-    public function deactivate(Request $request)
-    {
         if ($request->system == "house") {
-            $jobId = $this->client->deactivate();
-            event(new StatusCreated($jobId));
-            return response()->json([
-                "job_id" => $jobId,
-            ]);
-        } else if ($request->system == "garage") {
-            $jobId = $this->client->deactivateAnnex();
-            event(new StatusCreated($jobId));
-            return response()->json([
-                "job_id" => $jobId,
-            ]);
+            ActivateHouse::dispatch($request->mode);
+        } else {
+            // System is garage
+            ActivateAnnex::dispatch($request->mode);
         }
         return response()->json([
-            "error" => "system not supported",
-        ]);
+            'status' => 'accepted',
+        ], 202);
     }
 
+    /**
+     * Request the deactivation of a system
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function deactivate(Request $request)
+    {
+        if (!in_array($request->system, ["house", "garage"])) {
+            return response()->json([
+                'error' => 'system not supported, try with "/house" or "/garage"',
+            ], 400);
+        }
+        if ($request->system == "house") {
+            DeactivateHouse::dispatch();
+        } else if ($request->system == "garage") {
+            DeactivateAnnex::dispatch();
+        }
+        return response()->json([
+            'status' => 'accepted',
+        ], 202);
+    }
+
+    /**
+     * Logout from Verisure
+     *
+     * @return void
+     */
     public function logout()
     {
         try {
@@ -107,5 +123,4 @@ class VerisureController extends BaseController
             'status' => 'success',
         ], 200);
     }
-
 }

@@ -4,10 +4,16 @@ namespace Tests\Feature;
 
 use Mockery;
 use App\Session;
+use App\Jobs\Login;
 use Tests\TestCase;
-use App\Jobs\JobStatus;
+use App\Jobs\Status;
+use App\Jobs\Activate;
 use App\VerisureClient;
+use App\Jobs\ActivateAnnex;
+use App\Jobs\ActivateHouse;
 use Illuminate\Support\Str;
+use App\Jobs\DeactivateAnnex;
+use App\Jobs\DeactivateHouse;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -54,13 +60,8 @@ class VerisureControllerTest extends TestCase
      */
     public function testLogin()
     {
-        $session = $this->createSession();
-
-        $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('login')->andReturn($session);
-        $this->app->instance(VerisureClient::class, $mock);
-
-        $this->json('get', '/api/login')->assertStatus(200);
+        $this->json('get', '/api/login')->assertStatus(202);
+        Queue::assertPushed(Login::class);
     }
 
     /**
@@ -101,45 +102,60 @@ class VerisureControllerTest extends TestCase
      */
     public function assertJobStatusPushed($jobId)
     {
-        Queue::assertPushed(JobStatus::class, function ($job) use ($jobId) {
+        Queue::assertPushed(Status::class, function ($job) use ($jobId) {
             return $job->jobId === $jobId;
         });
 
     }
 
     /**
-     * Test activate house method
+     * Test activate house method dispatches the correct job
      *
      * @return void
      */
-    public function testActivate()
+    public function testActivateHouse()
     {
-        $mock = Mockery::mock(VerisureClient::class);
-
         foreach (["full", "day", "night"] as $mode) {
-            $mock->shouldReceive('activate')->with($mode)->andReturn($jobId = Str::random(20));
-            $this->app->instance(VerisureClient::class, $mock);
-
-            $response = $this->json('get', '/api/activate/house/' . $mode)->assertStatus(200);
-            $this->assertEquals(json_decode($response->getContent())->job_id, $jobId);
-            $this->assertJobStatusPushed($jobId);
+            $this->json('get', '/api/activate/house/' . $mode)->assertStatus(202);
+            Queue::assertPushed(ActivateHouse::class, function ($job) use ($mode) {
+                return $job->mode === $mode;
+            });
         }
     }
 
     /**
-     * Test activate garage method
+     * Test activate garage method dispatches the correct job
      *
      * @return void
      */
     public function testActivateGarage()
     {
-        $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('activateAnnex')->andReturn($jobId = Str::random(20));
-        $this->app->instance(VerisureClient::class, $mock);
+        $this->json('get', '/api/activate/garage')->assertStatus(202);
+        Queue::assertPushed(ActivateAnnex::class);
+    }
 
-        $response = $this->json('get', '/api/activate/garage')->assertStatus(200);
-        $this->assertEquals(json_decode($response->getContent())->job_id, $jobId);
-        $this->assertJobStatusPushed($jobId);
+    /**
+     * Test activate wrong system
+     *
+     * @return void
+     */
+    public function testActivateWrongSystem()
+    {
+        $this->json('get', '/api/activate/'. Str::random(50))->assertStatus(400);
+        Queue::assertNotPushed(ActivateAnnex::class);
+        Queue::assertNotPushed(ActivateHouse::class);
+    }
+
+    /**
+     * Test deactivate wrong system
+     *
+     * @return void
+     */
+    public function testDeactivateWrongSystem()
+    {
+        $this->json('get', '/api/deactivate/'. Str::random(50))->assertStatus(400);
+        Queue::assertNotPushed(DeactivateAnnex::class);
+        Queue::assertNotPushed(DeactivateHouse::class);
     }
 
     /**
@@ -147,15 +163,10 @@ class VerisureControllerTest extends TestCase
      *
      * @return void
      */
-    public function testDeactivate()
+    public function testDeactivateHouse()
     {
-        $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('deactivate')->andReturn($jobId = Str::random(20));
-        $this->app->instance(VerisureClient::class, $mock);
-
-        $response = $this->json('get', '/api/deactivate/house/')->assertStatus(200);
-        $this->assertEquals(json_decode($response->getContent())->job_id, $jobId);
-        $this->assertJobStatusPushed($jobId);
+        $this->json('get', '/api/deactivate/house')->assertStatus(202);
+        Queue::assertPushed(DeactivateHouse::class);
     }
 
     /**
@@ -165,13 +176,8 @@ class VerisureControllerTest extends TestCase
      */
     public function testDeactivateGarage()
     {
-        $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('deactivateAnnex')->andReturn($jobId = Str::random(20));
-        $this->app->instance(VerisureClient::class, $mock);
-
-        $response = $this->json('get', '/api/deactivate/garage')->assertStatus(200);
-        $this->assertEquals(json_decode($response->getContent())->job_id, $jobId);
-        $this->assertJobStatusPushed($jobId);
+        $this->json('get', '/api/deactivate/garage')->assertStatus(202);
+        Queue::assertPushed(DeactivateAnnex::class);
     }
 
     public function tearDown(): void
