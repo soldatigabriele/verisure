@@ -43,6 +43,22 @@ class VerisureControllerTest extends TestCase
     }
 
     /**
+     * Test requests with invalid auth-token should fail
+     *
+     * @return void
+     */
+    public function testAuthorizationFailsWrongToken()
+    {
+        $this->app->instance(VerisureClient::class, Mockery::mock(VerisureClient::class));
+        config()->set(['verisure.auth.active' => true]);
+        config()->set(['verisure.auth.token' => Str::random(32)]);
+        $routes = ['', 'login', 'logout', 'status', 'activate/house', 'deactivate/garage'];
+        foreach ($routes as $route) {
+            $this->json('get', '/api/' . $route, ['auth_token' => 'invalid_token'])->assertStatus(401);
+        }
+    }
+
+    /**
      * Test token validation can be disabled
      *
      * @return void
