@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Unit\Http\Controllers;
 
 use Mockery;
 use App\Session;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\VerisureClient;
 
 use Mockery;
 use App\Session;
@@ -9,31 +9,31 @@ use Tests\TestCase;
 use App\VerisureClient;
 use Illuminate\Support\Str;
 use GuzzleHttp\Psr7\Response;
+use App\Exceptions\LogoutException;
 use App\Exceptions\StatusException;
 use App\Exceptions\ActivationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class VerisureClientActivateAnnexTest extends TestCase
+class VerisureClientLogoutTest extends TestCase
 {
     use RefreshDatabase;
 
     /**
-     * Test the annex alarm can be activated
+     * Test can logout from a session
      *
      * @return void
      */
-    public function testActivate()
+    public function testLogout()
     {
         // Create a valid session
-        $this->createSession();
+        $session = $this->createSession();
 
-        $response = new Response(201, [], json_encode(['job_id' => '4321012345678']));
+        $response = new Response(302, []);
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
-        $jobId = $client->activateAnnex();
+        $client->logout();
 
-        $this->assertEquals('4321012345678', $jobId);
-        $this->assertEquals(1, \App\Response::count());
+        $this->assertNotNull($session->fresh()->deleted_at);
     }
 
     /**
@@ -41,16 +41,16 @@ class VerisureClientActivateAnnexTest extends TestCase
      *
      * @return void
      */
-    public function testActivationFails()
+    public function testLogoutFails()
     {
-        $this->expectException(ActivationException::class);
+        $this->expectException(LogoutException::class);
         // Create a valid session
         $this->createSession();
 
         $response = new Response(200, []);
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
-        $client->activateAnnex();
+        $client->logout();
     }
 
     /**

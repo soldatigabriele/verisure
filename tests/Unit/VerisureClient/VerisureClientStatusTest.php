@@ -1,57 +1,51 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\VerisureClient;
 
 use Mockery;
-use App\Session;
-use Carbon\Carbon;
 use Tests\TestCase;
 use App\VerisureClient;
-use Illuminate\Support\Str;
 use GuzzleHttp\Psr7\Response;
-use App\Response as LogResponse;
 use App\Exceptions\StatusException;
-use App\Exceptions\ActivationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class VerisureClientActivateMainTest extends TestCase
+class VerisureClientStatusTest extends TestCase
 {
     use RefreshDatabase;
 
     /**
-     * Test the main alarm can be activated
+     * Status test.
      *
      * @return void
      */
-    public function testActivate()
+    public function testStatus()
     {
-        // Create a valid session
         $this->createSession();
 
         $response = new Response(201, [], json_encode(['job_id' => '4321012345678']));
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
-        $jobId = $client->activate();
+        $jobId = $client->status();
 
         $this->assertEquals('4321012345678', $jobId);
-        $this->assertEquals(1, \App\Response::count());
     }
 
     /**
-     * Test an exception is triggered if the response is not 201
+     * Test a StatusException is thown if the status code is not 201
      *
      * @return void
      */
-    public function testActivationFails()
+    public function testStatusFails()
     {
-        $this->expectException(ActivationException::class);
-        // Create a valid session
+        $this->expectException(StatusException::class);
+
         $this->createSession();
 
+        // The VerisureClient expects a status 201 when asking for a Status
         $response = new Response(200, []);
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
-        $client->activate();
+        $client->status();
     }
 
     /**

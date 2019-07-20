@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\VerisureClient;
 
 use Mockery;
 use App\Session;
@@ -13,12 +13,12 @@ use App\Exceptions\StatusException;
 use App\Exceptions\DeactivationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class VerisureClientDeactivateMainTest extends TestCase
+class VerisureClientDeactivateAnnexTest extends TestCase
 {
     use RefreshDatabase;
 
     /**
-     * Test the main alarm can be activated
+     * Test the annex alarm can be activated
      *
      * @return void
      */
@@ -30,7 +30,7 @@ class VerisureClientDeactivateMainTest extends TestCase
         $response = new Response(201, [], json_encode(['job_id' => '4321012345678']));
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
-        $jobId = $client->deactivate();
+        $jobId = $client->deactivateAnnex();
 
         $this->assertEquals('4321012345678', $jobId);
         $this->assertEquals(1, \App\Response::count());
@@ -50,7 +50,7 @@ class VerisureClientDeactivateMainTest extends TestCase
         $response = new Response(200, []);
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
-        $client->deactivate();
+        $client->deactivateAnnex();
     }
 
     /**

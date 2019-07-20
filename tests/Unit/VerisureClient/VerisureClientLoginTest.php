@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\VerisureClient;
 
 use Mockery;
 use App\Session;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\VerisureClient;
 
 use Mockery;
 use App\Session;
@@ -10,10 +10,10 @@ use App\VerisureClient;
 use Illuminate\Support\Str;
 use GuzzleHttp\Psr7\Response;
 use App\Exceptions\StatusException;
-use App\Exceptions\DeactivationException;
+use App\Exceptions\ActivationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class VerisureClientDeactivateAnnexTest extends TestCase
+class VerisureClientActivateAnnexTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -22,7 +22,7 @@ class VerisureClientDeactivateAnnexTest extends TestCase
      *
      * @return void
      */
-    public function testDeactivate()
+    public function testActivate()
     {
         // Create a valid session
         $this->createSession();
@@ -30,7 +30,7 @@ class VerisureClientDeactivateAnnexTest extends TestCase
         $response = new Response(201, [], json_encode(['job_id' => '4321012345678']));
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
-        $jobId = $client->deactivateAnnex();
+        $jobId = $client->activateAnnex();
 
         $this->assertEquals('4321012345678', $jobId);
         $this->assertEquals(1, \App\Response::count());
@@ -41,16 +41,16 @@ class VerisureClientDeactivateAnnexTest extends TestCase
      *
      * @return void
      */
-    public function testDeactivationFails()
+    public function testActivationFails()
     {
-        $this->expectException(DeactivationException::class);
+        $this->expectException(ActivationException::class);
         // Create a valid session
         $this->createSession();
 
         $response = new Response(200, []);
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
-        $client->deactivateAnnex();
+        $client->activateAnnex();
     }
 
     /**
