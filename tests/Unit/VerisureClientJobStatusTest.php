@@ -37,6 +37,28 @@ class VerisureClientJobStatusTest extends TestCase
     }
 
     /**
+     * Test a failed attempt to activate alarm (window open)
+     *
+     * @return void
+     */
+    public function testJobStatusFailsOpenWindow()
+    {
+        // Create a valid session
+        $this->createSession();
+
+        $responses[] = new Response(200, [], json_encode(["status" => "working"]));
+        // Note: the message is on a different level in case of failed response
+        $responses[] = new Response(200, [], json_encode(["status" => "failed", "message" => "Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again."]));
+        $guzzleClient = $this->mockGuzzle($responses);
+        $client = new VerisureClient($guzzleClient);
+
+        $message = $client->jobStatus(Str::random(20));
+
+        $this->assertEquals('failed', $message['status']);
+        $this->assertEquals(2, \App\Response::count());
+    }
+
+    /**
      * Test an exception is triggered if the status in the response is not 'completed' or 'working'
      *
      * @return void

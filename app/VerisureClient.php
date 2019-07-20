@@ -255,6 +255,10 @@ class VerisureClient
             }
         }
 
+        if ($status == "failed") {
+            // Note: the message in the failed response is not under ['message']['message']
+            return ["status" => $status, "message" => $response->message];
+        }
         if ($status == "completed") {
             return ["status" => $status, "message" => $response->message->message];
         }
