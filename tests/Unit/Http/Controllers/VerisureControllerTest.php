@@ -107,21 +107,10 @@ class VerisureControllerTest extends TestCase
 
         $response = $this->json('get', '/api/status')->assertStatus(200);
         $this->assertEquals(json_decode($response->getContent())->job_id, $jobId);
-        $this->assertJobStatusPushed($jobId);
-    }
-
-    /**
-     * Check the job was pushed with the correct job Id
-     *
-     * @param [type] $jobId
-     * @return void
-     */
-    public function assertJobStatusPushed($jobId)
-    {
+        Queue::assertPushedOn('high', Status::class);
         Queue::assertPushed(Status::class, function ($job) use ($jobId) {
             return $job->jobId === $jobId;
         });
-
     }
 
     /**

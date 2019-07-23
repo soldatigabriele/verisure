@@ -35,7 +35,7 @@ class VerisureController extends BaseController
     public function login()
     {
         // Dispatch the job
-        dispatch(new Login);
+        Login::dispatch();
 
         return response()->json([
             'status' => 'accepted',

@@ -32,6 +32,7 @@ class HouseJobTest extends TestCase
             (new ActivateHouse($mode))->handle($mock);
 
             // Assert the job to check the status has been dispatched with the correct jobId
+            Queue::assertPushedOn('high', Status::class);
             Queue::assertPushed(Status::class, function ($job) use ($jobId) {
                 return $job->jobId === $jobId;
             });
@@ -56,6 +57,7 @@ class HouseJobTest extends TestCase
         (new DeactivateHouse)->handle($mock);
 
         // Assert the job to check the status has been dispatched with the correct jobId
+        Queue::assertPushedOn('high', Status::class);
         Queue::assertPushed(Status::class, function ($job) use ($jobId) {
             return $job->jobId === $jobId;
         });

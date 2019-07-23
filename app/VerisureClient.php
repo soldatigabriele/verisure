@@ -270,7 +270,7 @@ class VerisureClient
      *
      * @return array
      */
-    public function headers(): array
+    protected function headers(): array
     {
         return [
             "Cookie" => "accept_cookies=1; _session_id=" . $this->session->value,
