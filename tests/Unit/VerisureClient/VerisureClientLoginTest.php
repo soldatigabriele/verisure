@@ -48,6 +48,7 @@ class VerisureClientLoginTest extends TestCase
             'csrf' => '8cwrVwerJDxZX13dbTYFu6poc050jqqVJDYgplcNPSU=',
         ]);
         $this->assertEquals(1, \App\Response::count());
+        $this->assertEquals('login', \App\Response::latest()->first()->request_type);
     }
 
     /**

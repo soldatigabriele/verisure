@@ -29,6 +29,7 @@ class VerisureClientActivateMainTest extends TestCase
 
         $this->assertEquals('4321012345678', $jobId);
         $this->assertEquals(1, \App\Response::count());
+        $this->assertEquals('activate house', \App\Response::latest()->first()->request_type);
     }
 
     /**

@@ -25,6 +25,7 @@ class VerisureClientJobStatusTest extends TestCase
         $this->assertEquals('completed', $message['status']);
         $this->assertEquals(3, \App\Response::count());
         $this->assertEquals($alarmMessage, Record::first()->body);
+        $this->assertEquals('job status', \App\Response::latest()->first()->request_type);
     }
 
     /**

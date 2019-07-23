@@ -12,7 +12,7 @@ if (!function_exists('log_response')) {
      * @param \GuzzleHttp\Psr7\Response $response
      * @return void
      */
-    function log_response(Response $response, $body)
+    function log_response(Response $response, $body, string $type = "")
     {
         $log = new LogResponse;
 
@@ -28,6 +28,7 @@ if (!function_exists('log_response')) {
 
         $log->status = $response->getStatusCode();
         $log->headers = $response->getHeaders();
+        $log->request_type = $type;
         $log->body = $body;
 
         if ($request = Request::latest('id')->first()) {

@@ -54,7 +54,7 @@ class VerisureClient
                 "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . "&verisure_rsi_login%5Bnick%5D=" . config("verisure.username") . "&verisure_rsi_login%5Bpasswd%5D=" . config("verisure.password") . "&button="
             );
             $response = $this->client->send($loginRequest);
-            log_response($response, $response->getBody()->getContents());
+            log_response($response, $response->getBody()->getContents(), 'login');
 
             // Store the session cookie
             if ($cookie = $this->client->getConfig('cookies')->getCookieByName('_session_id')) {
@@ -119,7 +119,7 @@ class VerisureClient
             // Guzzle will throw an exception if the response is not in the 2xx
             $response = $this->client->send($request);
             $body = $response->getBody()->getContents();
-            log_response($response, $body);
+            log_response($response, $body, 'logout');
 
             if ($response->getStatusCode() == 302) {
                 // Delete the session
@@ -168,7 +168,7 @@ class VerisureClient
      */
     public function activateAnnex()
     {
-        return $this->request('panel/twice', '&typeAnnex=0&typeAnnex=1');
+        return $this->request('activate garage', 'panel/twice', '&typeAnnex=0&typeAnnex=1');
     }
 
     /**
@@ -178,7 +178,7 @@ class VerisureClient
      */
     public function deactivateAnnex()
     {
-        return $this->request('panel/twice', '&typeAnnex=0');
+        return $this->request('deactivate garage', 'panel/twice', '&typeAnnex=0');
     }
 
     /**
@@ -188,7 +188,7 @@ class VerisureClient
      */
     public function activate(string $mode)
     {
-        return $this->request('panel/' . $mode);
+        return $this->request('activate house', 'panel/' . $mode);
     }
 
     /**
@@ -198,7 +198,7 @@ class VerisureClient
      */
     public function deactivate()
     {
-        return $this->request('panel/unlock');
+        return $this->request('deactivate house', 'panel/unlock');
     }
 
     /**
@@ -208,7 +208,7 @@ class VerisureClient
      */
     public function status()
     {
-        return $this->request('panel/status');
+        return $this->request('status request', 'panel/status');
     }
 
     /**
@@ -218,7 +218,7 @@ class VerisureClient
      * @param string $options optional body parameters
      * @return string $job_id the Id of the current job
      */
-    protected function request(string $endpoint, string $options = ""): string
+    protected function request(string $requestType, string $endpoint, string $options = ""): string
     {
         $this->setSession();
         $request = new Request(
@@ -236,7 +236,7 @@ class VerisureClient
         }
 
         $body = $response->getBody()->getContents();
-        log_response($response, $body);
+        log_response($response, $body, $requestType);
 
         if ($response->getStatusCode() == 201) {
             return json_decode($body)->job_id;
@@ -266,7 +266,7 @@ class VerisureClient
 
             $response = $this->client->send($request);
             $body = $response->getBody()->getContents();
-            log_response($response, $body);
+            log_response($response, $body, 'job status');
             $response = json_decode($body);
 
             $status = $response->status;

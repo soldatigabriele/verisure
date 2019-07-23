@@ -29,6 +29,7 @@ class VerisureClientDeactivateAnnexTest extends TestCase
 
         $this->assertEquals('4321012345678', $jobId);
         $this->assertEquals(1, \App\Response::count());
+        $this->assertEquals('deactivate garage', \App\Response::latest()->first()->request_type);
     }
 
     /**

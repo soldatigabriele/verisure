@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Response extends Model
 {
-    protected $fillable = ['status', 'body', 'header'];
+    protected $fillable = ['status', 'body', 'header', 'request_type'];
 
     protected $casts = ['headers' => 'array', 'body' => 'array'];
 
