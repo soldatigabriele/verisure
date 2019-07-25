@@ -16,7 +16,7 @@ class VerisureClientJobStatusTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Test the main alarm can be activated
+     * Test the job status
      *
      * @return void
      */
@@ -96,6 +96,31 @@ class VerisureClientJobStatusTest extends TestCase
         $guzzleClient = $this->mockGuzzle($responses);
         $client = new VerisureClient($guzzleClient);
         $client->jobStatus(Str::random(20));
+    }
+
+    /**
+     * Test the responses are logged correctly
+     *
+     * @return void
+     */
+    public function testLogStatusResponse()
+    {
+        // Create a valid session
+        $this->createSession();
+        $jsonResponse = '{ "time": 1563921943, "status": "working", "uuid": "b0975bb4f9de5b7a85193bdb3935e902", 
+            "options": { "user": "{ some extra content here }", "cod_oper": null, "secret_word": null, "call_by": "WEB_11", 
+            "installation": "243397" }, "name": "RemoteConnectNightWorker( some extra content here )" }';
+
+        $responses[] = new Response(200, [], $jsonResponse);
+        $responses[] = new Response(200, [], json_encode(["time" => 1562586383, "status" => "completed", "uuid" => "cda28c2bfa31eeb833d2077f3fbf7695", "options" => [], "message" => ["status" => 0, "message" => $alarmMessage = "Your Alarm has been deactivated"]]));
+        $guzzleClient = $this->mockGuzzle($responses);
+        $client = new VerisureClient($guzzleClient);
+
+        $message = $client->jobStatus(Str::random(20));
+
+        // $this->assertEquals('working', $message['status']);
+        $this->assertEquals(2, \App\Response::count());
+        // dd(\App\Response::latest()->first()->toArray());
     }
 
     /**

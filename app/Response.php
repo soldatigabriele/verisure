@@ -8,7 +8,7 @@ class Response extends Model
 {
     protected $fillable = ['status', 'body', 'header'];
 
-    protected $casts = ['headers' => 'array'];
+    protected $casts = ['headers' => 'array', 'body' => 'array'];
 
     /**
      * Return the associated request
