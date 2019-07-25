@@ -2,11 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\VerisureClient;
-use App\Events\StatusCreated;
+use App\Jobs\Status;
 use Illuminate\Console\Command;
 
-class Status extends Command
+class RequestStatusCommand extends Command
 {
     /**
      * The name and signature of the console command.
@@ -23,21 +22,13 @@ class Status extends Command
     protected $description = 'Get status of the alarm';
 
     /**
-     * Intsance of VerisureClient
-     *
-     * @var VerisureClient
-     */
-    protected $client;
-
-    /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct(VerisureClient $client)
+    public function __construct()
     {
         parent::__construct();
-        $this->client = $client;
     }
 
     /**
@@ -47,7 +38,6 @@ class Status extends Command
      */
     public function handle()
     {
-        $jobId = $this->client->status();
-        event(new StatusCreated($jobId));
+        Status::dispatch()->onQueue('high');
     }
 }

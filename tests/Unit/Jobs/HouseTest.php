@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 use App\Jobs\DeactivateHouse;
 use Illuminate\Support\Facades\Queue;
 
-class HouseJobTest extends TestCase
+class HouseTest extends TestCase
 {
     /**
      * Test ActivateHouse job works fine and dispatches the jobStatus job
@@ -39,7 +39,7 @@ class HouseJobTest extends TestCase
 
         }
     }
-    
+
     /**
      * Test DeactivateHouse job works fine and dispatches the jobStatus job
      *

@@ -3,25 +3,19 @@
 namespace Tests\Unit\Jobs;
 
 use Mockery;
-use App\Session;
 use Tests\TestCase;
 use App\Jobs\Status;
-use GuzzleHttp\Client;
 use App\VerisureClient;
-use Illuminate\Support\Str;
 use GuzzleHttp\Psr7\Response;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class StatusTest extends TestCase
 {
-    use RefreshDatabase;
-
     /**
-     * Test jobStatus job
+     * Test Status job
      *
      * @return void
      */
-    public function testJobStatus()
+    public function testStatusJob()
     {
         $verisureClient = Mockery::mock(VerisureClient::class);
         $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => 'test', 'status' => 'ok']);
@@ -30,7 +24,7 @@ class StatusTest extends TestCase
         $job->handle($verisureClient, $notificationSystem);
         $this->addToAssertionCount(1);
     }
-    
+
     public function tearDown(): void
     {
         Mockery::close();
