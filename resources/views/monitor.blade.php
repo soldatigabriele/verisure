@@ -13,21 +13,16 @@
         
         <div class="card col-12" style="margin-bottom:20px;">
             <div class="card-body">
-                Options
+                <a href="{{route('requests')}}">Requests list</a>
             </div>
         </div>
-        
-        <div class="card col-12" style="margin-bottom:20px;">
+
+        <div class="card col-12">
             <div class="card-body">
-                Schedule
+                <a href="{{route('responses')}}">Responses list</a>
             </div>
         </div>
-        
-        <div class="card col-12" style="margin-bottom:20px;">
-            <div class="card-body">
-                <a href="{{route('monitor')}}">Monitor</a>
-            </div>
-        </div>
+
 
     </div>
 </div>

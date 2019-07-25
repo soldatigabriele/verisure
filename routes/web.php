@@ -25,6 +25,10 @@ Route::get('/home', function(){
     return view('home');
 })->name('home');
 
+Route::get('/monitor', function(){
+    return view('monitor');
+})->name('monitor');
+
 Route::get('/requests', function(){
     $requests = \App\Request::latest('id')->limit(40)->get();
     return view('requests')->with(['requests' => $requests]);
