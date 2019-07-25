@@ -2,14 +2,10 @@
 
 namespace Tests\Unit\Console\Commands;
 
-use Mockery;
-use App\Record;
 use Tests\TestCase;
-use App\VerisureClient;
-use App\Events\StatusCreated;
+use App\Jobs\RequestStatus;
 use Illuminate\Support\Facades\Queue;
 use App\Console\Commands\RequestStatusCommand;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class RequestStatusCommandTest extends TestCase
 {
@@ -23,6 +19,6 @@ class RequestStatusCommandTest extends TestCase
         Queue::fake();
         $command = new RequestStatusCommand;
         $command->handle();
-        Queue::assertPushedOn('high', \App\Jobs\Status::class);
+        Queue::assertPushedOn('high', \App\Jobs\RequestStatus::class);
     }
 }

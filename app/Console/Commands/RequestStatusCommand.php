@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\Status;
+use App\Jobs\RequestStatus;
 use Illuminate\Console\Command;
 
 class RequestStatusCommand extends Command
@@ -38,6 +38,6 @@ class RequestStatusCommand extends Command
      */
     public function handle()
     {
-        Status::dispatch()->onQueue('high');
+        RequestStatus::dispatch()->onQueue('high');
     }
 }
