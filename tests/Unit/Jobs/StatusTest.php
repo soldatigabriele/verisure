@@ -25,10 +25,9 @@ class StatusTest extends TestCase
     {
         $verisureClient = Mockery::mock(VerisureClient::class);
         $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => 'test', 'status' => 'ok']);
-        $wirePusher = $this->mockGuzzle(new Response(200, [], json_encode(['status' => 'ok'])));
-        // ->andReturn(["status" => "completed", "message" => "Alarm activated"]);
+        $notificationSystem = $this->mockGuzzle(new Response(200, [], json_encode(['status' => 'ok'])));
         $job = new Status('job-id-test');
-        $job->handle($verisureClient, $wirePusher);
+        $job->handle($verisureClient, $notificationSystem);
         $this->addToAssertionCount(1);
     }
     

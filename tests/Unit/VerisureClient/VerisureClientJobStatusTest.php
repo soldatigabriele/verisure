@@ -3,6 +3,7 @@
 namespace Tests\Unit\VerisureClient;
 
 use Mockery;
+use App\Record;
 use Tests\TestCase;
 use App\VerisureClient;
 use Illuminate\Support\Str;
@@ -26,7 +27,7 @@ class VerisureClientJobStatusTest extends TestCase
 
         $responses[] = new Response(200, [], json_encode(["time" => 1562586383, "status" => "working", "uuid" => "cda28c2bfa31eeb833d2077f3fbf7695", "options" => []]));
         $responses[] = new Response(200, [], json_encode(["time" => 1562586383, "status" => "queued", "uuid" => "cda28c2bfa31eeb833d2077f3fbf7695", "options" => []]));
-        $responses[] = new Response(200, [], json_encode(["time" => 1562586383, "status" => "completed", "uuid" => "cda28c2bfa31eeb833d2077f3fbf7695", "options" => [], "message" => ["status" => 0, "message" => "Your Alarm has been deactivated"]]));
+        $responses[] = new Response(200, [], json_encode(["time" => 1562586383, "status" => "completed", "uuid" => "cda28c2bfa31eeb833d2077f3fbf7695", "options" => [], "message" => ["status" => 0, "message" => $alarmMessage = "Your Alarm has been deactivated"]]));
         $guzzleClient = $this->mockGuzzle($responses);
         $client = new VerisureClient($guzzleClient);
 
@@ -34,6 +35,7 @@ class VerisureClientJobStatusTest extends TestCase
 
         $this->assertEquals('completed', $message['status']);
         $this->assertEquals(3, \App\Response::count());
+        $this->assertEquals($alarmMessage, Record::first()->body);
     }
 
     /**
@@ -48,7 +50,7 @@ class VerisureClientJobStatusTest extends TestCase
 
         $responses[] = new Response(200, [], json_encode(["status" => "working"]));
         // Note: the message is on a different level in case of failed response
-        $responses[] = new Response(200, [], json_encode(["status" => "failed", "message" => "Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again."]));
+        $responses[] = new Response(200, [], json_encode(["status" => "failed", "message" => $alarmMessage = "Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again."]));
         $guzzleClient = $this->mockGuzzle($responses);
         $client = new VerisureClient($guzzleClient);
 
@@ -56,6 +58,7 @@ class VerisureClientJobStatusTest extends TestCase
 
         $this->assertEquals('failed', $message['status']);
         $this->assertEquals(2, \App\Response::count());
+        $this->assertEquals($alarmMessage, Record::first()->body);
     }
 
     /**

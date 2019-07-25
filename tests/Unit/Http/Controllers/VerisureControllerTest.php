@@ -3,7 +3,6 @@
 namespace Tests\Unit\Http\Controllers;
 
 use Mockery;
-use App\Session;
 use App\Jobs\Login;
 use Tests\TestCase;
 use App\Jobs\Status;
@@ -12,8 +11,11 @@ use App\VerisureClient;
 use App\Jobs\ActivateAnnex;
 use App\Jobs\ActivateHouse;
 use Illuminate\Support\Str;
+use App\Events\RecordCreated;
+use App\Events\StatusCreated;
 use App\Jobs\DeactivateAnnex;
 use App\Jobs\DeactivateHouse;
+use App\Status as LocalStatus;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -146,7 +148,7 @@ class VerisureControllerTest extends TestCase
      */
     public function testActivateWrongSystem()
     {
-        $this->json('get', '/api/activate/'. Str::random(50))->assertStatus(400);
+        $this->json('get', '/api/activate/' . Str::random(50))->assertStatus(400);
         Queue::assertNotPushed(ActivateAnnex::class);
         Queue::assertNotPushed(ActivateHouse::class);
     }
@@ -158,7 +160,7 @@ class VerisureControllerTest extends TestCase
      */
     public function testDeactivateWrongSystem()
     {
-        $this->json('get', '/api/deactivate/'. Str::random(50))->assertStatus(400);
+        $this->json('get', '/api/deactivate/' . Str::random(50))->assertStatus(400);
         Queue::assertNotPushed(DeactivateAnnex::class);
         Queue::assertNotPushed(DeactivateHouse::class);
     }

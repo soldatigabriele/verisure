@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Client;
+use App\Record;
 use App\Session;
 use DOMDocument;
 use Carbon\Carbon;
@@ -257,9 +258,11 @@ class VerisureClient
 
         if ($status == "failed") {
             // Note: the message in the failed response is not under ['message']['message']
+            Record::create(['body' => $response->message]);
             return ["status" => $status, "message" => $response->message];
         }
         if ($status == "completed") {
+            Record::create(['body' => $response->message->message]);
             return ["status" => $status, "message" => $response->message->message];
         }
         throw new JobStatusException("Error in the response: " . $status);
