@@ -38,7 +38,9 @@ class RequestStatusCommand extends Command
      */
     public function handle()
     {
-        // "false" is the notification
-        RequestStatus::dispatch(false)->onQueue('high');
+        if (config('verisure.keep_session_alive')) {
+            // "false" is the notification
+            RequestStatus::dispatch(false)->onQueue('high');
+        }
     }
 }

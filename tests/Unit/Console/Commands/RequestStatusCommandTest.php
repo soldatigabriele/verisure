@@ -17,8 +17,23 @@ class RequestStatusCommandTest extends TestCase
     public function testRequestStatusCommand()
     {
         Queue::fake();
+        config(['verisure.keep_session_alive' => true]);
         $command = new RequestStatusCommand;
         $command->handle();
         Queue::assertPushedOn('high', \App\Jobs\RequestStatus::class);
+    }
+
+    /**
+     * Test command to get the alarm status
+     *
+     * @return void
+     */
+    public function testRequestStatusCommandDisabled()
+    {
+        Queue::fake();
+        config(['verisure.keep_session_alive' => false]);
+        $command = new RequestStatusCommand;
+        $command->handle();
+        Queue::assertNotPushed(\App\Jobs\RequestStatus::class);
     }
 }

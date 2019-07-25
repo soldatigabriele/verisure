@@ -17,4 +17,5 @@ return [
         "max_calls" => env("VERISURE_STATUS_JOBS_MAX_CALLS", 5),
         "sleep_between_calls" => env("VERISURE_STATUS_JOBS_SLEEP", 3),
     ],
+    "keep_session_alive" => env("VERISURE_KEEP_SESSION_ALIVE", false),
 ];
