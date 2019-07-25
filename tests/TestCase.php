@@ -54,7 +54,7 @@ abstract class TestCase extends BaseTestCase
         return Session::create([
             'csrf' => Str::random(20),
             'value' => Str::random(20),
-            'expires' => Carbon::tomorrow(),
+            'expires' => now()->addMinutes(20),
         ]);
     }
 }

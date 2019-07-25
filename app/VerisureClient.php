@@ -12,6 +12,7 @@ use GuzzleHttp\Psr7\Response;
 use App\Request as LogRequest;
 use GuzzleHttp\ClientInterface;
 use App\Response as LogResponse;
+use GuzzleHttp\Cookie\SetCookie;
 use \App\Exceptions\LoginException;
 use App\Exceptions\LogoutException;
 use App\Exceptions\StatusException;
@@ -75,14 +76,25 @@ class VerisureClient
 
             // Store the session cookie
             if ($cookie = $this->client->getConfig('cookies')->getCookieByName('_session_id')) {
-                $this->session->value = $cookie->getValue();
-                $this->session->expires = Carbon::createFromTimestamp($cookie->getExpires());
-                $this->session->save();
+                $this->storeSessionCookie($cookie);
                 return $this;
             }
             throw new LoginException("Session cookie was not returned after the login");
         }
         throw new LoginException("Error during the login process");
+    }
+
+    /**
+     * Store the session cookie in the Database
+     *
+     * @param SetCookie $cookie
+     * @return void
+     */
+    protected function storeSessionCookie(SetCookie $cookie)
+    {
+        $this->session->value = $cookie->getValue();
+        $this->session->expires = Carbon::createFromTimestamp($cookie->getExpires());
+        return $this->session->save();
     }
 
     /**
@@ -215,6 +227,12 @@ class VerisureClient
 
         // Guzzle will throw an exception if the response is not in the 2xx
         $response = $this->client->send($request);
+        
+        // Update the session cookie
+        if ($cookie = $this->client->getConfig('cookies')->getCookieByName('_session_id')) {
+            $this->storeSessionCookie($cookie);
+        }
+
         $body = $response->getBody()->getContents();
         $this->logResponse($response, $body);
 
