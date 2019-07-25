@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Record;
-use Carbon\Carbon;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -22,9 +21,16 @@ class RecordsController extends BaseController
     {
         $record = Record::latest('id')->first();
 
+        if ($record) {
+
+            return response()->json([
+                "message" => $record->body,
+                "age" => $record->created_at->diffForHumans(),
+            ]);
+        }
         return response()->json([
-            "message" => $record->body,
-            "age" => $record->created_at->diffForHumans(),
+            "message" => "no record found",
+            "age" => now(),
         ]);
     }
 }
