@@ -26,6 +26,7 @@ class RecordsController extends BaseController
             return response()->json([
                 "message" => $record->body,
                 "age" => $record->created_at->diffForHumans(),
+                "created_at" => $record->created_at->format('d/m/Y H:i:s'),
             ]);
         }
         return response()->json([
