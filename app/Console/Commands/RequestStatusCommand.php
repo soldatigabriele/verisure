@@ -38,6 +38,7 @@ class RequestStatusCommand extends Command
      */
     public function handle()
     {
-        RequestStatus::dispatch()->onQueue('high');
+        // "false" is the notification
+        RequestStatus::dispatch(false)->onQueue('high');
     }
 }

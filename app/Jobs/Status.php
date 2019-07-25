@@ -15,6 +15,7 @@ class Status implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable;
 
     public $jobId;
+    public $notify;
 
     /**
      * Create a new job instance.
@@ -22,9 +23,10 @@ class Status implements ShouldQueue
      * @param string $jobId The id of the job to check
      * @return void
      */
-    public function __construct($jobId = null)
+    public function __construct($jobId = null, $notify = true)
     {
         $this->jobId = $jobId;
+        $this->notify = $notify;
     }
 
     /**
@@ -37,8 +39,10 @@ class Status implements ShouldQueue
     {
         $response = $client->jobStatus($this->jobId);
         $this->guzzle = $guzzle;
-        $response = $this->sendNotification($response);
-        // TODO Log the response
+        if (config('verisure.notification.enabled') && $this->notify) {
+            $response = $this->sendNotification($response);
+            // TODO Log the response
+        }
     }
 
     /**
@@ -49,7 +53,7 @@ class Status implements ShouldQueue
      */
     protected function sendNotification(array $response)
     {
-        $url = 'https://maker.ifttt.com/trigger/alarm_status/with/key/' . config('verisure.notification_channel') . '?value1=' . $response['status'] . ' &value2=' . $response['message'];
+        $url = 'https://maker.ifttt.com/trigger/alarm_status/with/key/' . config('verisure.notification.channel') . '?value1=' . $response['status'] . ' &value2=' . $response['message'];
         $notification = new Request("POST", $url);
         $response = $this->guzzle->send($notification);
         return json_decode($response->getBody()->getContents(), true);

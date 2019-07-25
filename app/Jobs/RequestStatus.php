@@ -20,9 +20,9 @@ class RequestStatus implements ShouldQueue
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(bool $notify = false)
     {
-        //
+        $this->notify = $notify;
     }
 
     /**
@@ -34,6 +34,6 @@ class RequestStatus implements ShouldQueue
     public function handle(VerisureClient $client)
     {
         $jobId = $client->status();
-        event(new StatusCreated($jobId));
+        event(new StatusCreated($jobId, $this->notify));
     }
 }

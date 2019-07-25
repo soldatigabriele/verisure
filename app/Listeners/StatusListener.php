@@ -27,6 +27,6 @@ class StatusListener
     {
         // Push on the queue the job to check the status of
         // the connection and notify the user
-        Status::dispatch($event->jobId)->onQueue('high');
+        Status::dispatch($event->jobId, $event->notify)->onQueue('high');
     }
 }

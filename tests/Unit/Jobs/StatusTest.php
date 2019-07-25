@@ -25,6 +25,23 @@ class StatusTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    /**
+     * Test notification can be disabled
+     *
+     * @return void
+     */
+    public function testNotification()
+    {
+        $verisureClient = Mockery::mock(VerisureClient::class);
+        $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => 'test', 'status' => 'ok']);
+        // The test doesn't fail, as we don't expect Guzzle to try and make the call to notify
+        $notificationSystem = $this->mockGuzzle([]);
+        config()->set(['verisure.notification.enabled' => false]);
+        $job = new Status('job-id-test');
+        $job->handle($verisureClient, $notificationSystem);
+        $this->addToAssertionCount(1);
+    }
+
     public function tearDown(): void
     {
         Mockery::close();
