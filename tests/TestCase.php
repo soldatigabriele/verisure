@@ -3,11 +3,12 @@
 namespace Tests;
 
 use App\Session;
-use Carbon\Carbon;
 use GuzzleHttp\Client;
+use App\VerisureClient;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Handler\MockHandler;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
@@ -42,6 +43,27 @@ abstract class TestCase extends BaseTestCase
         $mock = new MockHandler($responses);
         $handler = HandlerStack::create($mock);
         return new Client(['cookies' => true, 'handler' => $handler]);
+    }
+
+    /**
+     * Generate an array of Guzzle Responses
+     *
+     * @param array $statuses the list of statuses. One per response
+     * @param array $extra
+     * @return array
+     */
+    protected function callJobStatus(array $statuses = ["working"], array $extra = []): array
+    {
+        foreach ($statuses as $status) {
+            $content = ["status" => $status];
+            if ($status == 'completed' || $status == 'failed') {
+                $content = array_merge($content, $extra);
+            }
+            $responses[] = new Response(200, [], json_encode($content));
+        }
+
+        $client = (new VerisureClient($this->mockGuzzle($responses)));
+        return $client->jobStatus(Str::random(20));
     }
 
     /**

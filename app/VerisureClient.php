@@ -22,8 +22,18 @@ use App\Exceptions\DeactivationException;
 
 class VerisureClient
 {
+    /**
+     * Instance of ClientInterface
+     *
+     * @var ClientInterface
+     */
     protected $client;
 
+    /**
+     * Instance of Session
+     *
+     * @var Session
+     */
     protected $session;
 
     /**
@@ -39,7 +49,7 @@ class VerisureClient
     /**
      * Check if we have a valid session, otherwise login
      *
-     * @return void
+     * @return bool
      */
     protected function setSession(): void
     {
@@ -50,6 +60,11 @@ class VerisureClient
         return;
     }
 
+    /**
+     * Login and store the Session
+     *
+     * @return $this
+     */
     public function login()
     {
         // Get the Authenticity Token from the login page (CSRF token)
@@ -88,7 +103,7 @@ class VerisureClient
      * Store the session cookie in the Database
      *
      * @param SetCookie $cookie
-     * @return void
+     * @return bool
      */
     protected function storeSessionCookie(SetCookie $cookie)
     {
@@ -124,6 +139,8 @@ class VerisureClient
 
     /**
      * Activate the annex alarm
+     * 
+     * @return string $job_id the Id of the current job
      */
     public function activateAnnex(string $mode = null)
     {
@@ -147,6 +164,8 @@ class VerisureClient
 
     /**
      * Deactivate the annex alarm
+     * 
+     * @return string $job_id the Id of the current job
      */
     public function deactivateAnnex(string $mode = null)
     {
@@ -171,6 +190,8 @@ class VerisureClient
 
     /**
      * Activate the main alarm
+     * 
+     * @return string $job_id the Id of the current job
      */
     public function activate(string $mode = null)
     {
@@ -195,6 +216,8 @@ class VerisureClient
 
     /**
      * Deactivate the main alarm
+     * 
+     * @return string $job_id the Id of the current job
      */
     public function deactivate()
     {
@@ -216,6 +239,11 @@ class VerisureClient
         throw new DeactivationException("Server responded with status code: " . $response->getStatusCode());
     }
 
+    /**
+     * Check for the status of the alarm
+     *
+     * @return $this
+     */
     public function status()
     {
         $this->setSession();
@@ -242,11 +270,12 @@ class VerisureClient
         throw new StatusException("Server responded with status code: " . $response->getStatusCode());
     }
 
-    protected function refreshSession()
-    {
-        //
-    }
-
+    /**
+     * Process the job status
+     *
+     * @param string $jobId
+     * @return array
+     */
     public function jobStatus(string $jobId)
     {
         $this->setSession();

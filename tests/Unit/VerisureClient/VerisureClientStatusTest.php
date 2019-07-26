@@ -2,7 +2,6 @@
 
 namespace Tests\Unit\VerisureClient;
 
-use Mockery;
 use Carbon\Carbon;
 use Tests\TestCase;
 use App\VerisureClient;
@@ -22,7 +21,6 @@ class VerisureClientStatusTest extends TestCase
     public function testStatus()
     {
         $this->createSession();
-
         $response = new Response(201, [], json_encode(['job_id' => '4321012345678']));
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
@@ -44,7 +42,7 @@ class VerisureClientStatusTest extends TestCase
 
         // This session cookie will expire 40 minutes from now, we want to update the one we have in the DB
         $response = new Response(201, [
-            'Set-Cookie' => '_session_id=' . $session->value . '; path=/; expires=Thu, 04-Jul-2019 20:40:00 GMT; HttpOnly'], json_encode(['job_id' => '4321012345678'
+            'Set-Cookie' => '_session_id=' . $session->value . '; path=/; expires=Thu, 04-Jul-2019 20:40:00 GMT; HttpOnly'], json_encode(['job_id' => '4321012345678',
         ]));
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
@@ -60,25 +58,12 @@ class VerisureClientStatusTest extends TestCase
      */
     public function testStatusFails()
     {
-        $this->expectException(StatusException::class);
-
         $this->createSession();
-
+        $this->expectException(StatusException::class);
         // The VerisureClient expects a status 201 when asking for a Status
         $response = new Response(200, []);
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
         $client->status();
-    }
-
-    /**
-     * TearDown the test
-     *
-     * @return void
-     */
-    public function tearDown(): void
-    {
-        parent::tearDown();
-        Mockery::close();
     }
 }

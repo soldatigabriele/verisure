@@ -6,7 +6,15 @@ use Closure;
 
 class AuthenticateToken
 {
-    public function handle($request, Closure $next, $guard = null)
+    /**
+     * Handle the authentication with a token
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param Closure $next
+     * @param  string|null  $guard
+     * @return mixed
+     */
+    public function handle($request, Closure $next)
     {
         if (config("verisure.auth.active") && $request->auth_token !== config("verisure.auth.token")) {
             if (env("APP_ENV") !== "testing"){

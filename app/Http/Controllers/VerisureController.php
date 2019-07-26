@@ -11,15 +11,15 @@ use App\Jobs\RequestStatus;
 use Illuminate\Http\Request;
 use App\Jobs\DeactivateAnnex;
 use App\Jobs\DeactivateHouse;
-use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class VerisureController extends BaseController
 {
-    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-
+    /**
+     * VerisureClient interface
+     *
+     * @var VerisureClient
+     */
     protected $client;
 
     public function __construct(VerisureClient $client)

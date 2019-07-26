@@ -2,7 +2,6 @@
 
 namespace Tests\Unit\Http\Controllers;
 
-use Mockery;
 use App\Jobs\Login;
 use Tests\TestCase;
 use App\Jobs\Status;
@@ -15,58 +14,18 @@ use Illuminate\Support\Str;
 use App\Jobs\DeactivateAnnex;
 use App\Jobs\DeactivateHouse;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class VerisureControllerTest extends TestCase
 {
-    use RefreshDatabase;
-
+    /**
+     * SetUp
+     *
+     * @return void
+     */
     public function setUp(): void
     {
         parent::setUp();
         Queue::fake();
-    }
-
-    /**
-     * Test requests without auth-token should fail
-     *
-     * @return void
-     */
-    public function testAuthorizationFails()
-    {
-        $this->app->instance(VerisureClient::class, Mockery::mock(VerisureClient::class));
-        config()->set(['verisure.auth.active' => true]);
-        $routes = ['', 'login', 'logout', 'status', 'activate/house', 'deactivate/garage'];
-        foreach ($routes as $route) {
-            $this->json('get', '/api/' . $route)->assertStatus(401);
-        }
-    }
-
-    /**
-     * Test requests with invalid auth-token should fail
-     *
-     * @return void
-     */
-    public function testAuthorizationFailsWrongToken()
-    {
-        $this->app->instance(VerisureClient::class, Mockery::mock(VerisureClient::class));
-        config()->set(['verisure.auth.active' => true]);
-        config()->set(['verisure.auth.token' => Str::random(32)]);
-        $routes = ['', 'login', 'logout', 'status', 'activate/house', 'deactivate/garage'];
-        foreach ($routes as $route) {
-            $this->json('get', '/api/' . $route, ['auth_token' => 'invalid_token'])->assertStatus(401);
-        }
-    }
-
-    /**
-     * Test token validation can be disabled
-     *
-     * @return void
-     */
-    public function testAuthorizationDisabled()
-    {
-        $this->json('get', '/api')->assertStatus(200);
-        $this->json('get', '/api', ['auth_token' => 'anything'])->assertStatus(200);
     }
 
     /**
@@ -87,11 +46,10 @@ class VerisureControllerTest extends TestCase
      */
     public function testLogout()
     {
-        $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('logout');
-        $this->app->instance(VerisureClient::class, $mock);
-
-        $response = $this->json('get', '/api/logout')->assertStatus(200);
+        $this->mock(VerisureClient::class, function ($mock) {
+            $mock->shouldReceive('logout')->once();
+        });
+        $this->json('get', '/api/logout')->assertStatus(200);
     }
 
     /**
@@ -101,7 +59,7 @@ class VerisureControllerTest extends TestCase
      */
     public function testStatus()
     {
-        $response = $this->json('get', '/api/status')->assertStatus(202);
+        $this->json('get', '/api/status')->assertStatus(202);
         Queue::assertPushed(RequestStatus::class);
     }
 
@@ -175,22 +133,5 @@ class VerisureControllerTest extends TestCase
     {
         $this->json('get', '/api/deactivate/garage')->assertStatus(202);
         Queue::assertPushed(DeactivateAnnex::class);
-    }
-
-    public function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
-    }
-
-    /**
-     * Test any request should contain the auth-token
-     *
-     * @return void
-     */
-    public function testAuthorizationSuccess()
-    {
-        config()->set(['verisure.auth.active' => true, 'verisure.auth.token' => Str::random(20)]);
-        $response = $this->json('get', '/api', ['auth_token' => config('verisure.auth.token')])->assertStatus(200);
     }
 }
