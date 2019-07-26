@@ -108,8 +108,8 @@ class VerisureClientJobStatusTest extends TestCase
         // Create a valid session
         $this->createSession();
         $jsonResponse = '{ "time": 1563921943, "status": "working", "uuid": "b0975bb4f9de5b7a85193bdb3935e902", 
-            "options": { "user": "{ some extra content here }", "cod_oper": null, "secret_word": null, "call_by": "WEB_11", 
-            "installation": "243397" }, "name": "RemoteConnectNightWorker( some extra content here )" }';
+            "options": { "user": "{ some_extra_content_here }", "cod_oper": null, "secret_word": null, "call_by": "WEB_11", 
+            "installation": "243397" }, "name": "RemoteConnectNightWorker( some_extra_content_here )" }';
 
         $responses[] = new Response(200, [], $jsonResponse);
         $responses[] = new Response(200, [], json_encode(["time" => 1562586383, "status" => "completed", "uuid" => "cda28c2bfa31eeb833d2077f3fbf7695", "options" => [], "message" => ["status" => 0, "message" => $alarmMessage = "Your Alarm has been deactivated"]]));
@@ -120,7 +120,8 @@ class VerisureClientJobStatusTest extends TestCase
 
         // $this->assertEquals('working', $message['status']);
         $this->assertEquals(2, \App\Response::count());
-        // dd(\App\Response::latest()->first()->toArray());
+        $this->assertContains('CONTENT REMOVED', json_encode(\App\Response::latest()->first()->body));
+        $this->assertNotContains('some_extra_content_here', json_encode(\App\Response::latest()->first()->body));
     }
 
     /**
