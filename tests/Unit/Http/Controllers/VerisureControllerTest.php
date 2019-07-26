@@ -10,12 +10,10 @@ use App\Jobs\Activate;
 use App\VerisureClient;
 use App\Jobs\ActivateAnnex;
 use App\Jobs\ActivateHouse;
+use App\Jobs\RequestStatus;
 use Illuminate\Support\Str;
-use App\Events\RecordCreated;
-use App\Events\StatusCreated;
 use App\Jobs\DeactivateAnnex;
 use App\Jobs\DeactivateHouse;
-use App\Status as LocalStatus;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -103,16 +101,8 @@ class VerisureControllerTest extends TestCase
      */
     public function testStatus()
     {
-        $mock = Mockery::mock(VerisureClient::class);
-        $mock->shouldReceive('status')->andReturn($jobId = Str::random(20));
-        $this->app->instance(VerisureClient::class, $mock);
-
-        $response = $this->json('get', '/api/status')->assertStatus(200);
-        $this->assertEquals(json_decode($response->getContent())->job_id, $jobId);
-        Queue::assertPushedOn('high', Status::class);
-        Queue::assertPushed(Status::class, function ($job) use ($jobId) {
-            return $job->jobId === $jobId;
-        });
+        $response = $this->json('get', '/api/status')->assertStatus(202);
+        Queue::assertPushed(RequestStatus::class);
     }
 
     /**

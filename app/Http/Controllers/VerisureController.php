@@ -7,8 +7,8 @@ use App\Jobs\Activate;
 use App\VerisureClient;
 use App\Jobs\ActivateAnnex;
 use App\Jobs\ActivateHouse;
+use App\Jobs\RequestStatus;
 use Illuminate\Http\Request;
-use App\Events\StatusCreated;
 use App\Jobs\DeactivateAnnex;
 use App\Jobs\DeactivateHouse;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -49,12 +49,11 @@ class VerisureController extends BaseController
      */
     public function status()
     {
-        $jobId = $this->client->status();
-        event(new StatusCreated($jobId));
+        RequestStatus::dispatch();
 
         return response()->json([
-            "job_id" => $jobId,
-        ]);
+            "stauts" => "accepted",
+        ], 202);
     }
 
     /**
