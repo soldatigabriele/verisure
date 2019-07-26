@@ -357,11 +357,13 @@ class VerisureClient
         $log = new LogResponse;
         
         $body = json_decode($body, true);
-        // Note: we remove the errors and the content we don't need as they
-        // were returning a bunch of extra heavy data for every response
-        $body['options']['user'] = 'CONTENT REMOVED';
-        $body['name'] = 'CONTENT REMOVED';
-        
+        if (config('verisure.censure_responses')){
+            // Note: we remove the errors and the content we don't need as they
+            // were returning a bunch of extra heavy data for every response
+            $body['options']['user'] = 'CONTENT REMOVED';
+            $body['name'] = 'CONTENT REMOVED';
+        }
+            
         $log->status = $response->getStatusCode();
         $log->headers = $response->getHeaders();
         $log->body = $body;

@@ -18,4 +18,5 @@ return [
         "sleep_between_calls" => env("VERISURE_STATUS_JOBS_SLEEP", 3),
     ],
     "keep_session_alive" => env("VERISURE_KEEP_SESSION_ALIVE", false),
+    "censure_responses" => env("VERISURE_CENSURE_RESPONSES", true),
 ];
