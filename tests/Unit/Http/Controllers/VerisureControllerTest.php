@@ -70,7 +70,7 @@ class VerisureControllerTest extends TestCase
      */
     public function testActivateHouse()
     {
-        foreach (["full", "day", "night"] as $mode) {
+        foreach (["house", "day", "night"] as $mode) {
             $this->json('get', '/api/activate/house/' . $mode)->assertStatus(202);
             Queue::assertPushed(ActivateHouse::class, function ($job) use ($mode) {
                 return $job->mode === $mode;

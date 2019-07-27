@@ -22,6 +22,11 @@ class VerisureController extends BaseController
      */
     protected $client;
 
+    /**
+     * Controller constructor
+     *
+     * @param VerisureClient $client
+     */
     public function __construct(VerisureClient $client)
     {
         $this->client = $client;
@@ -34,12 +39,8 @@ class VerisureController extends BaseController
      */
     public function login()
     {
-        // Dispatch the job
         Login::dispatch();
-
-        return response()->json([
-            'status' => 'accepted',
-        ], 202);
+        return response()->json(['status' => 'accepted'], 202);
     }
 
     /**
@@ -50,10 +51,7 @@ class VerisureController extends BaseController
     public function status()
     {
         RequestStatus::dispatch();
-
-        return response()->json([
-            "stauts" => "accepted",
-        ], 202);
+        return response()->json(["stauts" => "accepted"], 202);
     }
 
     /**
@@ -71,14 +69,13 @@ class VerisureController extends BaseController
         }
 
         if ($request->system == "house") {
-            ActivateHouse::dispatch($request->mode);
+            $mode = in_array($request->mode, ['house', 'night', 'day']) ? $request->mode : 'house';
+            ActivateHouse::dispatch($mode);
         } else {
             // System is garage
-            ActivateAnnex::dispatch($request->mode);
+            ActivateAnnex::dispatch();
         }
-        return response()->json([
-            'status' => 'accepted',
-        ], 202);
+        return response()->json(['status' => 'accepted'], 202);
     }
 
     /**
@@ -99,9 +96,7 @@ class VerisureController extends BaseController
         } else if ($request->system == "garage") {
             DeactivateAnnex::dispatch();
         }
-        return response()->json([
-            'status' => 'accepted',
-        ], 202);
+        return response()->json(['status' => 'accepted'], 202);
     }
 
     /**
@@ -118,8 +113,6 @@ class VerisureController extends BaseController
                 'status' => $th->getMessage(),
             ], 400);
         }
-        return response()->json([
-            'status' => 'success',
-        ], 200);
+        return response()->json(['status' => 'success'], 200);
     }
 }

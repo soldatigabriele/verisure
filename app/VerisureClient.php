@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Exception;
 use App\Client;
 use App\Record;
 use App\Session;
@@ -15,10 +16,6 @@ use App\Response as LogResponse;
 use GuzzleHttp\Cookie\SetCookie;
 use \App\Exceptions\LoginException;
 use App\Exceptions\LogoutException;
-use App\Exceptions\StatusException;
-use App\Exceptions\JobStatusException;
-use App\Exceptions\ActivationException;
-use App\Exceptions\DeactivationException;
 
 class VerisureClient
 {
@@ -139,104 +136,42 @@ class VerisureClient
 
     /**
      * Activate the annex alarm
-     * 
+     *
      * @return string $job_id the Id of the current job
      */
-    public function activateAnnex(string $mode = null)
+    public function activateAnnex()
     {
-        $this->setSession();
-        $request = new Request(
-            "POST",
-            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/twice",
-            $this->headers(),
-            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . "&typeAnnex=0&typeAnnex=1");
-
-        // Guzzle will throw an exception if the response is not in the 2xx
-        $response = $this->client->send($request);
-        $body = $response->getBody()->getContents();
-        $this->logResponse($response, $body);
-
-        if ($response->getStatusCode() == 201) {
-            return json_decode($body)->job_id;
-        }
-        throw new ActivationException("Server responded with status code: " . $response->getStatusCode());
+        return $this->request('POST', 'panel/twice', '&typeAnnex=0&typeAnnex=1');
     }
 
     /**
      * Deactivate the annex alarm
-     * 
+     *
      * @return string $job_id the Id of the current job
      */
-    public function deactivateAnnex(string $mode = null)
+    public function deactivateAnnex()
     {
-        $this->setSession();
-        $request = new Request(
-            "POST",
-            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/twice",
-            $this->headers(),
-            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . "&typeAnnex=0");
-
-        // Guzzle will throw an exception if the response is not in the 2xx
-        $response = $this->client->send($request);
-        // TODO this $response->getBody() gets unset in the logRespons ??
-        $body = $response->getBody()->getContents();
-        $this->logResponse($response, $body);
-
-        if ($response->getStatusCode() == 201) {
-            return json_decode($body)->job_id;
-        }
-        throw new DeactivationException("Server responded with status code: " . $response->getStatusCode());
+        return $this->request('POST', 'panel/twice', '&typeAnnex=0');
     }
 
     /**
      * Activate the main alarm
-     * 
+     *
      * @return string $job_id the Id of the current job
      */
-    public function activate(string $mode = null)
+    public function activate(string $mode)
     {
-        $this->setSession();
-        $mode = in_array($mode, ['house', 'night', 'day']) ? $mode : 'house';
-        $request = new Request(
-            "POST",
-            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/" . $mode,
-            $this->headers(),
-            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf));
-
-        // Guzzle will throw an exception if the response is not in the 2xx
-        $response = $this->client->send($request);
-        $body = $response->getBody()->getContents();
-        $this->logResponse($response, $body);
-
-        if ($response->getStatusCode() == 201) {
-            return json_decode($body)->job_id;
-        }
-        throw new ActivationException("Server responded with status code: " . $response->getStatusCode());
+        return $this->request('POST', 'panel/' . $mode);
     }
 
     /**
      * Deactivate the main alarm
-     * 
+     *
      * @return string $job_id the Id of the current job
      */
     public function deactivate()
     {
-        $this->setSession();
-        $request = new Request(
-            "POST",
-            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/unlock",
-            $this->headers(),
-            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf));
-
-        // Guzzle will throw an exception if the response is not in the 2xx
-        $response = $this->client->send($request);
-        $body = $response->getBody()->getContents();
-        $this->logResponse($response, $body);
-
-        if ($response->getStatusCode() == 201) {
-            return json_decode($body)->job_id;
-        }
-        throw new DeactivationException("Server responded with status code: " . $response->getStatusCode());
+        return $this->request('POST', 'panel/unlock');
     }
 
     /**
@@ -246,28 +181,7 @@ class VerisureClient
      */
     public function status()
     {
-        $this->setSession();
-        $request = new Request(
-            "POST",
-            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/panel/status",
-            $this->headers(),
-            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf));
-
-        // Guzzle will throw an exception if the response is not in the 2xx
-        $response = $this->client->send($request);
-        
-        // Update the session cookie
-        if ($cookie = $this->client->getConfig('cookies')->getCookieByName('_session_id')) {
-            $this->storeSessionCookie($cookie);
-        }
-
-        $body = $response->getBody()->getContents();
-        $this->logResponse($response, $body);
-
-        if ($response->getStatusCode() == 201) {
-            return json_decode($body)->job_id;
-        }
-        throw new StatusException("Server responded with status code: " . $response->getStatusCode());
+        return $this->request('POST', 'panel/status');
     }
 
     /**
@@ -283,7 +197,7 @@ class VerisureClient
         $status = "queued";
         while ($status == "working" || $status == "queued") {
             if ($counter > config('verisure.status_job.max_calls')) {
-                throw new JobStatusException("Too many attempts");
+                throw new Exception("Too many attempts");
             }
 
             $headers = $this->headers();
@@ -312,7 +226,7 @@ class VerisureClient
             Record::create(['body' => $response->message->message]);
             return ["status" => $status, "message" => $response->message->message];
         }
-        throw new JobStatusException("Error in the response: " . $status);
+        throw new Exception("Error in the response: " . $status);
     }
 
     /**
@@ -376,6 +290,40 @@ class VerisureClient
     }
 
     /**
+     * Make a Guzzle request to the specified endpoint
+     *
+     * @param string $method
+     * @param string $endpoint
+     * @param string $options optional body parameters
+     * @return string $job_id the Id of the current job
+     */
+    protected function request(string $method, string $endpoint, string $options = ""): string
+    {
+        $this->setSession();
+        $request = new Request(
+            $method,
+            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/" . $endpoint,
+            $this->headers(),
+            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . $options);
+
+        // Guzzle will throw an exception if the response is not in the 2xx
+        $response = $this->client->send($request);
+
+        // Update the session cookie
+        if ($cookie = $this->client->getConfig('cookies')->getCookieByName('_session_id')) {
+            $this->storeSessionCookie($cookie);
+        }
+
+        $body = $response->getBody()->getContents();
+        $this->logResponse($response, $body);
+
+        if ($response->getStatusCode() == 201) {
+            return json_decode($body)->job_id;
+        }
+        throw new Exception("Server responded with status code: " . $response->getStatusCode());
+    }
+
+    /**
      * Log the response from the server
      *
      * @param \GuzzleHttp\Psr7\Response $response
@@ -384,15 +332,17 @@ class VerisureClient
     protected function logResponse(Response $response, $body)
     {
         $log = new LogResponse;
-        
+
         $body = json_decode($body, true);
-        if (config('verisure.censure_responses')){
+        if (config('verisure.censure_responses')) {
             // Note: we remove the errors and the content we don't need as they
             // were returning a bunch of extra heavy data for every response
             $body['options']['user'] = 'CONTENT REMOVED';
             $body['name'] = 'CONTENT REMOVED';
         }
-            
+
+        // TODO this $response->getBody() gets unset in the logRespons ?? This is why we need to pass the response and body
+
         $log->status = $response->getStatusCode();
         $log->headers = $response->getHeaders();
         $log->body = $body;

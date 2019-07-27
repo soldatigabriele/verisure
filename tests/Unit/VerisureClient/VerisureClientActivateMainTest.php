@@ -3,15 +3,10 @@
 namespace Tests\Unit\VerisureClient;
 
 use Mockery;
-use App\Session;
-use Carbon\Carbon;
+use Exception;
 use Tests\TestCase;
 use App\VerisureClient;
-use Illuminate\Support\Str;
 use GuzzleHttp\Psr7\Response;
-use App\Response as LogResponse;
-use App\Exceptions\StatusException;
-use App\Exceptions\ActivationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class VerisureClientActivateMainTest extends TestCase
@@ -31,7 +26,7 @@ class VerisureClientActivateMainTest extends TestCase
         $response = new Response(201, [], json_encode(['job_id' => '4321012345678']));
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
-        $jobId = $client->activate();
+        $jobId = $client->activate('sample');
 
         $this->assertEquals('4321012345678', $jobId);
         $this->assertEquals(1, \App\Response::count());
@@ -44,14 +39,14 @@ class VerisureClientActivateMainTest extends TestCase
      */
     public function testActivationFails()
     {
-        $this->expectException(ActivationException::class);
+        $this->expectException(Exception::class);
         // Create a valid session
         $this->createSession();
 
         $response = new Response(200, []);
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
-        $client->activate();
+        $client->activate('sample');
     }
 
     /**

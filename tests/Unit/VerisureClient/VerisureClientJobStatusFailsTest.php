@@ -2,11 +2,11 @@
 
 namespace Tests\Unit\VerisureClient;
 
+use Exception;
 use App\Record;
 use Tests\TestCase;
 use App\VerisureClient;
 use GuzzleHttp\Psr7\Response;
-use App\Exceptions\JobStatusException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class VerisureClientJobStatusFailsTest extends TestCase
@@ -36,7 +36,7 @@ class VerisureClientJobStatusFailsTest extends TestCase
     public function testJobStatusFailsForWrongStatus()
     {
         $this->createSession();
-        $this->expectException(JobStatusException::class);
+        $this->expectException(Exception::class);
 
         // Calle the jobStatus method on the VerisureClient
         $this->callJobStatus(['unknown-status'], ["message" => "foo bar"]);
@@ -51,7 +51,7 @@ class VerisureClientJobStatusFailsTest extends TestCase
     public function testJobStatusFailsForTooManyAttempts()
     {
         $this->createSession();
-        $this->expectException(JobStatusException::class);
+        $this->expectException(Exception::class);
         for ($i = 0; $i < config('verisure.status_job.max_calls') + 1; $i++) {
             $statuses[] = "working";
         }

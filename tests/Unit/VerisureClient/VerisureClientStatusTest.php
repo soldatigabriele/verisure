@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\VerisureClient;
 
+use Exception;
 use Carbon\Carbon;
 use Tests\TestCase;
 use App\VerisureClient;
@@ -59,7 +60,7 @@ class VerisureClientStatusTest extends TestCase
     public function testStatusFails()
     {
         $this->createSession();
-        $this->expectException(StatusException::class);
+        $this->expectException(Exception::class);
         // The VerisureClient expects a status 201 when asking for a Status
         $response = new Response(200, []);
         $guzzleClient = $this->mockGuzzle($response);
