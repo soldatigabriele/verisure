@@ -2,16 +2,11 @@
 
 namespace Tests\Unit\VerisureClient;
 
-use Mockery;
 use App\Session;
-use Carbon\Carbon;
 use Tests\TestCase;
 use App\VerisureClient;
-use Illuminate\Support\Str;
 use GuzzleHttp\Psr7\Response;
 use App\Exceptions\LogoutException;
-use App\Exceptions\StatusException;
-use App\Exceptions\ActivationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class VerisureClientLogoutTest extends TestCase
@@ -51,16 +46,5 @@ class VerisureClientLogoutTest extends TestCase
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
         $client->logout();
-    }
-
-    /**
-     * TearDown the test
-     *
-     * @return void
-     */
-    public function tearDown(): void
-    {
-        parent::tearDown();
-        Mockery::close();
     }
 }

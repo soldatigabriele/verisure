@@ -2,7 +2,6 @@
 
 namespace Tests\Unit\VerisureClient;
 
-use Mockery;
 use Exception;
 use Tests\TestCase;
 use App\VerisureClient;
@@ -47,16 +46,5 @@ class VerisureClientActivateAnnexTest extends TestCase
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
         $client->activateAnnex();
-    }
-
-    /**
-     * TearDown the test
-     *
-     * @return void
-     */
-    public function tearDown(): void
-    {
-        parent::tearDown();
-        Mockery::close();
     }
 }
