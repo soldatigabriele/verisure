@@ -53,7 +53,7 @@ class VerisureClient
      */
     protected function setSession(): void
     {
-        if (optional($this->session = Session::latest()->first())->isValid()) {
+        if (optional($this->session = Session::latest('id')->first())->isValid()) {
             return;
         }
         $this->login();
@@ -397,7 +397,7 @@ class VerisureClient
         $log->headers = $response->getHeaders();
         $log->body = $body;
 
-        if ($request = LogRequest::latest()->first()) {
+        if ($request = LogRequest::latest('id')->first()) {
             $request->response()->save($log);
         }
         $log->save();
