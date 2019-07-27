@@ -3,6 +3,7 @@
 namespace Tests\Unit\VerisureClient;
 
 use Mockery;
+use Exception;
 use App\Session;
 use Carbon\Carbon;
 use Tests\TestCase;
@@ -10,7 +11,6 @@ use GuzzleHttp\Client;
 use App\VerisureClient;
 use Illuminate\Support\Str;
 use GuzzleHttp\Psr7\Response;
-use App\Exceptions\LoginException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class VerisureClientLoginTest extends TestCase
@@ -57,7 +57,7 @@ class VerisureClientLoginTest extends TestCase
      */
     public function testLoginFails()
     {
-        $this->expectException(LoginException::class);
+        $this->expectException(Exception::class);
 
         $responses = [
             new Response(200, [], $this->getLoginPageHTML()),

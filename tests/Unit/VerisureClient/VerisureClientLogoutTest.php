@@ -2,11 +2,11 @@
 
 namespace Tests\Unit\VerisureClient;
 
+use Exception;
 use App\Session;
 use Tests\TestCase;
 use App\VerisureClient;
 use GuzzleHttp\Psr7\Response;
-use App\Exceptions\LogoutException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class VerisureClientLogoutTest extends TestCase
@@ -38,7 +38,7 @@ class VerisureClientLogoutTest extends TestCase
      */
     public function testLogoutFails()
     {
-        $this->expectException(LogoutException::class);
+        $this->expectException(Exception::class);
         // Create a valid session
         $this->createSession();
 

@@ -9,13 +9,8 @@ use App\Session;
 use DOMDocument;
 use Carbon\Carbon;
 use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Response;
-use App\Request as LogRequest;
 use GuzzleHttp\ClientInterface;
-use App\Response as LogResponse;
 use GuzzleHttp\Cookie\SetCookie;
-use \App\Exceptions\LoginException;
-use App\Exceptions\LogoutException;
 
 class VerisureClient
 {
@@ -69,31 +64,20 @@ class VerisureClient
             $loginRequest = new Request(
                 "POST",
                 config("verisure.url") . "/gb/login/gb",
-                [
-                    "Origin" => "https://customers.verisure.co.uk",
-                    "Connection" => "keep-alive",
-                    "Content-Type" => "application/x-www-form-urlencoded",
-                    "Cache-Control" => "max-age=0",
-                    "Upgrade-Insecure-Requests" => "1",
-                    "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
-                    "Referer" => "https://customers.verisure.co.uk/",
-                    "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
-                    "Accept-Encoding" => "gzip, deflate, br",
-                    "Accept-Language" => "en-GB,en;q=0.9,it-IT;q=0.8,it;q=0.7,en-US;q=0.6",
-                ],
+                config("verisure.request_headers.generic_request"),
                 "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . "&verisure_rsi_login%5Bnick%5D=" . config("verisure.username") . "&verisure_rsi_login%5Bpasswd%5D=" . config("verisure.password") . "&button="
             );
             $response = $this->client->send($loginRequest);
-            $this->logResponse($response, $response->getBody()->getContents());
+            log_response($response, $response->getBody()->getContents());
 
             // Store the session cookie
             if ($cookie = $this->client->getConfig('cookies')->getCookieByName('_session_id')) {
                 $this->storeSessionCookie($cookie);
                 return $this;
             }
-            throw new LoginException("Session cookie was not returned after the login");
+            throw new Exception("Session cookie was not returned after the login");
         }
-        throw new LoginException("Error during the login process");
+        throw new Exception("Error during the login process");
     }
 
     /**
@@ -123,13 +107,14 @@ class VerisureClient
             // Guzzle will throw an exception if the response is not in the 2xx
             $response = $this->client->send($request);
             $body = $response->getBody()->getContents();
-            $this->logResponse($response, $body);
+            log_response($response, $body);
+
             if ($response->getStatusCode() == 302) {
                 // Delete the session
                 $this->session->delete();
                 return json_decode($body);
             }
-            throw new LogoutException("Server responded with status code: " . $response->getStatusCode());
+            throw new Exception("Server responded with status code: " . $response->getStatusCode());
         }
         return "Your session is already expired";
     }
@@ -206,7 +191,7 @@ class VerisureClient
 
             $response = $this->client->send($request);
             $body = $response->getBody()->getContents();
-            $this->logResponse($response, $body);
+            log_response($response, $body);
             $response = json_decode($body);
 
             $status = $response->status;
@@ -230,47 +215,13 @@ class VerisureClient
     }
 
     /**
-     * Set the header for the guzzle client
-     *
-     * @return array
-     */
-    protected function headers(): array
-    {
-        return [
-            "Cookie" => "accept_cookies=1; _session_id=" . $this->session->value,
-            "Origin" => "https://customers.verisure.co.uk",
-            "Accept-Encoding" => "gzip, deflate, br",
-            "X-Csrf-Token" => $this->session->csrf,
-            "Accept-Language" => "en-GB,en;q=0.9,it-IT;q=0.8,it;q=0.7,en-US;q=0.6",
-            "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
-            "Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8",
-            "Accept" => "application/json, text/javascript, */*; q=0.01",
-            "Referer" => "https://customers.verisure.co.uk/gb/installations",
-            "X-Requested-With" => "XMLHttpRequest",
-            "Connection" => "keep-alive",
-        ];
-    }
-
-    /**
      * Get the Authenticity Token from the login page
      *
      * @return Session
      */
     protected function getAuthenticityToken(): Session
     {
-        $request = new Request(
-            "GET",
-            config("verisure.url") . "/gb/login/gb",
-            [
-                "Connection" => "keep-alive",
-                "Cache-Control" => "max-age=0",
-                "Upgrade-Insecure-Requests" => "1",
-                "User-Agent" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36",
-                "Accept" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
-                "Accept-Encoding" => "gzip, deflate, br",
-                "Accept-Language" => "en-GB,en;q=0.9,it-IT;q=0.8,it;q=0.7,en-US;q=0.6",
-            ],
-            "");
+        $request = new Request("GET", config("verisure.url") . "/gb/login/gb", config("verisure.request_headers.authenticity_token"), "");
 
         $response = $this->client->send($request);
 
@@ -286,7 +237,7 @@ class VerisureClient
                 ]);
             }
         }
-        throw new \Exception("Autenticity Token not found");
+        throw new Exception("Autenticity Token not found");
     }
 
     /**
@@ -315,7 +266,7 @@ class VerisureClient
         }
 
         $body = $response->getBody()->getContents();
-        $this->logResponse($response, $body);
+        log_response($response, $body);
 
         if ($response->getStatusCode() == 201) {
             return json_decode($body)->job_id;
@@ -324,32 +275,18 @@ class VerisureClient
     }
 
     /**
-     * Log the response from the server
+     * Set the header for the guzzle client
      *
-     * @param \GuzzleHttp\Psr7\Response $response
-     * @return void
+     * @return array
      */
-    protected function logResponse(Response $response, $body)
+    protected function headers(): array
     {
-        $log = new LogResponse;
-
-        $body = json_decode($body, true);
-        if (config('verisure.censure_responses')) {
-            // Note: we remove the errors and the content we don't need as they
-            // were returning a bunch of extra heavy data for every response
-            $body['options']['user'] = 'CONTENT REMOVED';
-            $body['name'] = 'CONTENT REMOVED';
-        }
-
-        // TODO this $response->getBody() gets unset in the logRespons ?? This is why we need to pass the response and body
-
-        $log->status = $response->getStatusCode();
-        $log->headers = $response->getHeaders();
-        $log->body = $body;
-
-        if ($request = LogRequest::latest('id')->first()) {
-            $request->response()->save($log);
-        }
-        $log->save();
+        return array_merge(
+            config("verisure.request_headers.generic_request"),
+            [
+                "Cookie" => "accept_cookies=1; _session_id=" . $this->session->value,
+                "X-Csrf-Token" => $this->session->csrf,
+            ]
+        );
     }
 }
