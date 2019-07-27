@@ -273,7 +273,7 @@ class VerisureClient
             $status = $response->status;
             $counter++;
             // In production, add a timer between the requests
-            if (env("APP_ENV") !== "testing" && $status !== "completed") {
+            if (!is_test() && $status !== "completed") {
                 sleep(config('verisure.status_job.sleep_between_calls'));
             }
         }

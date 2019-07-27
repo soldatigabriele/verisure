@@ -17,7 +17,7 @@ class AuthenticateToken
     public function handle($request, Closure $next)
     {
         if (config("verisure.auth.active") && $request->auth_token !== config("verisure.auth.token")) {
-            if (env("APP_ENV") !== "testing"){
+            if (!is_test()) {
                 sleep(0.3);
             }
             abort(401);

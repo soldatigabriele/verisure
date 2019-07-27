@@ -35,4 +35,14 @@ if (!function_exists('log_response')) {
         }
         $log->save();
     }
+
+    /**
+     * Check if the env is test
+     *
+     * @return bool
+     */
+    function is_test(): bool
+    {
+        return env("APP_ENV") == "testing";
+    }
 }
