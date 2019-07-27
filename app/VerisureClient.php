@@ -168,7 +168,7 @@ class VerisureClient
      */
     public function activateAnnex()
     {
-        return $this->request('POST', 'panel/twice', '&typeAnnex=0&typeAnnex=1');
+        return $this->request('panel/twice', '&typeAnnex=0&typeAnnex=1');
     }
 
     /**
@@ -178,7 +178,7 @@ class VerisureClient
      */
     public function deactivateAnnex()
     {
-        return $this->request('POST', 'panel/twice', '&typeAnnex=0');
+        return $this->request('panel/twice', '&typeAnnex=0');
     }
 
     /**
@@ -188,7 +188,7 @@ class VerisureClient
      */
     public function activate(string $mode)
     {
-        return $this->request('POST', 'panel/' . $mode);
+        return $this->request('panel/' . $mode);
     }
 
     /**
@@ -198,7 +198,7 @@ class VerisureClient
      */
     public function deactivate()
     {
-        return $this->request('POST', 'panel/unlock');
+        return $this->request('panel/unlock');
     }
 
     /**
@@ -208,22 +208,21 @@ class VerisureClient
      */
     public function status()
     {
-        return $this->request('POST', 'panel/status');
+        return $this->request('panel/status');
     }
 
     /**
      * Make a Guzzle request to the specified endpoint
      *
-     * @param string $method
      * @param string $endpoint
      * @param string $options optional body parameters
      * @return string $job_id the Id of the current job
      */
-    protected function request(string $method, string $endpoint, string $options = ""): string
+    protected function request(string $endpoint, string $options = ""): string
     {
         $this->setSession();
         $request = new Request(
-            $method,
+            "POST",
             config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/" . $endpoint,
             $this->headers(),
             "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . $options);
