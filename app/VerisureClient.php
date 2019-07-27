@@ -39,20 +39,6 @@ class VerisureClient
     }
 
     /**
-     * Check if we have a valid session, otherwise login
-     *
-     * @return bool
-     */
-    protected function setSession(): void
-    {
-        if (optional($this->session = Session::latest('id')->first())->isValid()) {
-            return;
-        }
-        $this->login();
-        return;
-    }
-
-    /**
      * Login and store the Session
      *
      * @return $this
@@ -78,6 +64,32 @@ class VerisureClient
             throw new Exception("Session cookie was not returned after the login");
         }
         throw new Exception("Error during the login process");
+    }
+
+    /**
+     * Get the Authenticity Token from the login page
+     *
+     * @return Session
+     */
+    protected function getAuthenticityToken(): Session
+    {
+        $request = new Request("GET", config("verisure.url") . "/gb/login/gb", config("verisure.request_headers.authenticity_token"), "");
+
+        $response = $this->client->send($request);
+
+        // Parse the HTML from the response and get the authenticity_token
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML((string) $response->getBody()->getContents());
+        libxml_clear_errors();
+        foreach ($dom->getElementsByTagName('input') as $input) {
+            if ($input->getAttribute('name') == 'authenticity_token') {
+                return Session::create([
+                    'csrf' => $input->getAttribute('value'),
+                ]);
+            }
+        }
+        throw new Exception("Autenticity Token not found");
     }
 
     /**
@@ -117,6 +129,36 @@ class VerisureClient
             throw new Exception("Server responded with status code: " . $response->getStatusCode());
         }
         return "Your session is already expired";
+    }
+
+    /**
+     * Check if we have a valid session, otherwise login
+     *
+     * @return bool
+     */
+    protected function setSession(): void
+    {
+        if (optional($this->session = Session::latest('id')->first())->isValid()) {
+            return;
+        }
+        $this->login();
+        return;
+    }
+
+    /**
+     * Set the header for the guzzle client
+     *
+     * @return array
+     */
+    protected function headers(): array
+    {
+        return array_merge(
+            config("verisure.request_headers.generic_request"),
+            [
+                "Cookie" => "accept_cookies=1; _session_id=" . $this->session->value,
+                "X-Csrf-Token" => $this->session->csrf,
+            ]
+        );
     }
 
     /**
@@ -170,6 +212,40 @@ class VerisureClient
     }
 
     /**
+     * Make a Guzzle request to the specified endpoint
+     *
+     * @param string $method
+     * @param string $endpoint
+     * @param string $options optional body parameters
+     * @return string $job_id the Id of the current job
+     */
+    protected function request(string $method, string $endpoint, string $options = ""): string
+    {
+        $this->setSession();
+        $request = new Request(
+            $method,
+            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/" . $endpoint,
+            $this->headers(),
+            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . $options);
+
+        // Guzzle will throw an exception if the response is not in the 2xx
+        $response = $this->client->send($request);
+
+        // Update the session cookie
+        if ($cookie = $this->client->getConfig('cookies')->getCookieByName('_session_id')) {
+            $this->storeSessionCookie($cookie);
+        }
+
+        $body = $response->getBody()->getContents();
+        log_response($response, $body);
+
+        if ($response->getStatusCode() == 201) {
+            return json_decode($body)->job_id;
+        }
+        throw new Exception("Server responded with status code: " . $response->getStatusCode());
+    }
+
+    /**
      * Process the job status
      *
      * @param string $jobId
@@ -212,81 +288,5 @@ class VerisureClient
             return ["status" => $status, "message" => $response->message->message];
         }
         throw new Exception("Error in the response: " . $status);
-    }
-
-    /**
-     * Get the Authenticity Token from the login page
-     *
-     * @return Session
-     */
-    protected function getAuthenticityToken(): Session
-    {
-        $request = new Request("GET", config("verisure.url") . "/gb/login/gb", config("verisure.request_headers.authenticity_token"), "");
-
-        $response = $this->client->send($request);
-
-        // Parse the HTML from the response and get the authenticity_token
-        $dom = new DOMDocument();
-        libxml_use_internal_errors(true);
-        $dom->loadHTML((string) $response->getBody()->getContents());
-        libxml_clear_errors();
-        foreach ($dom->getElementsByTagName('input') as $input) {
-            if ($input->getAttribute('name') == 'authenticity_token') {
-                return Session::create([
-                    'csrf' => $input->getAttribute('value'),
-                ]);
-            }
-        }
-        throw new Exception("Autenticity Token not found");
-    }
-
-    /**
-     * Make a Guzzle request to the specified endpoint
-     *
-     * @param string $method
-     * @param string $endpoint
-     * @param string $options optional body parameters
-     * @return string $job_id the Id of the current job
-     */
-    protected function request(string $method, string $endpoint, string $options = ""): string
-    {
-        $this->setSession();
-        $request = new Request(
-            $method,
-            config("verisure.url") . "/gb/installations/" . config("verisure.installation") . "/" . $endpoint,
-            $this->headers(),
-            "utf8=%E2%9C%93&authenticity_token=" . urlencode($this->session->csrf) . $options);
-
-        // Guzzle will throw an exception if the response is not in the 2xx
-        $response = $this->client->send($request);
-
-        // Update the session cookie
-        if ($cookie = $this->client->getConfig('cookies')->getCookieByName('_session_id')) {
-            $this->storeSessionCookie($cookie);
-        }
-
-        $body = $response->getBody()->getContents();
-        log_response($response, $body);
-
-        if ($response->getStatusCode() == 201) {
-            return json_decode($body)->job_id;
-        }
-        throw new Exception("Server responded with status code: " . $response->getStatusCode());
-    }
-
-    /**
-     * Set the header for the guzzle client
-     *
-     * @return array
-     */
-    protected function headers(): array
-    {
-        return array_merge(
-            config("verisure.request_headers.generic_request"),
-            [
-                "Cookie" => "accept_cookies=1; _session_id=" . $this->session->value,
-                "X-Csrf-Token" => $this->session->csrf,
-            ]
-        );
     }
 }
