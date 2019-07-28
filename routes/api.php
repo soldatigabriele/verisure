@@ -1,6 +1,6 @@
 <?php
 
-Route::middleware('api')->group(function () {
+Route::middleware(['api', 'token'])->group(function () {
     Route::get('/', function () {
         return app()->version();
     });

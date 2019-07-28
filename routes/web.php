@@ -5,7 +5,7 @@ use App\Response;
 
 Auth::routes(['register' => false, 'reset' => false]);
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware('auth')->group(function () {
     Route::get('/', function(){
         $responses = \App\Response::latest('id')->get();
         // dd($responses);
