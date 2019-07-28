@@ -41,7 +41,7 @@ class VerisureClientJobStatusTest extends TestCase
         ]);
 
         $this->assertTrue((bool) \App\Response::count());
-        $this->assertContains('CONTENT REMOVED', json_encode(\App\Response::latest()->first()->body));
+        $this->assertContains('...', json_encode(\App\Response::latest()->first()->body));
         $this->assertNotContains('some_extra_content_here', json_encode(\App\Response::latest()->first()->body));
     }
 

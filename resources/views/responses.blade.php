@@ -17,7 +17,6 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Type</th>
                             <th>Request</th>
                             <th>Status</th>
                             <th>Body</th>
@@ -25,6 +24,15 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            $badges = [
+                                'completed' => 'badge-success',
+                                'working' => 'badge-light',
+                                'queued' => 'badge-light',
+                                'failed' => 'badge-danger',
+                            ];
+                        @endphp
+                    
                         @foreach($responses as $response)
                         <tr>
                             <td>
@@ -33,25 +41,46 @@
                                 </a>
                             </td>
                             <td>
-                                {{ \Illuminate\Support\Str::title($response->request_type) }}
-                            </td>
-                            <td>
-                                <a href="{{ route('request', $response->request->id) }}">{{ $response->request->id }}</a>
+                                <a href="{{ route('request', $response->request->id) }}">{{ \Illuminate\Support\Str::title($response->request_type) }}</a>
                             </td>
                             <td>
                                 {{ $response->status }}
                             </td>
                             <td>
-                                {{ \Illuminate\Support\Str::limit($response->body, 40) }}
+                                @isset($response->body['job_id'])
+
+                                    <span class="badge badge-info">
+                                        requested 
+                                    </span>
+                                    <span class="badge badge-light">
+                                        job_id: {{ $response->body['job_id'] }}
+                                    </span>
+                                @elseif (isset($response->body['status']))
+
+                                    <span class="badge {{$badges[$response->body['status']] ?? 'badge-danger'}}">{{ $response->body['status'] }}</span>
+                                    <span class="badge badge-light">
+                                        @if($response->body['status'] == 'completed')
+                                            {{ $response->body['message']['message'] }}
+                                        @endif
+                                        @if($response->body['status'] == 'failed')
+                                            {{ $response->body['message'] }}
+                                        @endif
+                                    </span>
+                                @else
+                                    <span class="badge badge-light">
+                                        {{ \Illuminate\Support\Str::limit(json_encode($response->body), 100) }}
+                                    </span>
+                                @endif
                             </td>
                             <td>
+                                {{ $response->created_at->diffForHumans() }} - 
                                 {{ $response->created_at->format('d/m/Y H:i:s') }}
-                                ({{ $response->created_at->diffForHumans() }})
                             </td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>                
+                {{ $responses->links() }}
             </div>
         </div>
 

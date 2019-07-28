@@ -32,7 +32,10 @@
                 @endforeach
             </td>
             <td>
-                {{ $response->body}}
+                @foreach($response->body as $key => $val)
+                    {{$key}}: {{ json_encode($val) }}
+                    <br>
+                @endforeach
             </td>
             <td>
                 {{$response->created_at->format('d/m/Y H:i:s')}}

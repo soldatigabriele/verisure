@@ -20,8 +20,8 @@ if (!function_exists('log_response')) {
         if (config('verisure.censure_responses')) {
             // Note: we remove the errors and the content we don't need as they
             // were returning a bunch of extra heavy data for every response
-            $body['options']['user'] = 'CONTENT REMOVED';
-            $body['name'] = 'CONTENT REMOVED';
+            $body['options']['user'] = '...';
+            $body['name'] = '...';
         }
 
         // TODO this $response->getBody() gets unset in the logRespons ?? This is why we need to pass the response and body

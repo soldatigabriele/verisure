@@ -7,7 +7,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>{{ config('app.name', 'Verisure') }}</title>
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
@@ -20,16 +20,31 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    
+    <style>
+        .navbar-dark .navbar-nav .nav-link {
+            color: rgba(255, 255, 255);
+            position: relative;
+            top: 5px;
+        }
+        .banner{
+            height:45px;
+        }
+        @media only screen and (max-width: 960px) {
+            .banner {
+                height:55px;
+            }
+        }
+       
+    </style>
     @yield('header-style')
 
 </head>
 <body>
     <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+        <nav class="navbar navbar-expand-md navbar-dark shadow-sm banner" style="background: #fd0033;color:white;">
             <div class="container">
-                <a class="navbar-brand" href="{{ url('/home') }}">
-                    {{ config('app.name', 'Laravel') }}
+                <a class="" href="{{ route('home') }}">
+                    <img src="{{url('/banner.png')}}" alt="" width="140px;">
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
