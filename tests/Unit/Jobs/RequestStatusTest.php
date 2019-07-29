@@ -3,6 +3,7 @@
 namespace Tests\Unit\Jobs;
 
 use Mockery;
+use Exception;
 use Tests\TestCase;
 use App\Jobs\Status;
 use App\VerisureClient;
@@ -29,6 +30,24 @@ class RequestStatusTest extends TestCase
         Queue::assertPushed(Status::class, function ($job) use ($jobId) {
             return $job->jobId === $jobId;
         });
+    }
+
+    /**
+     * Test error 500 from server
+     *
+     * @return void
+     */
+    public function testServerError()
+    {
+        $this->expectException(Exception::class);
+        $verisureClient = Mockery::mock(VerisureClient::class);
+        $verisureClient->shouldReceive('status')->once()->andThrow(Exception::class)
+        // If the job fails, let's try to logout and login again
+            ->shouldReceive('logout')->once()
+            ->shouldReceive('login')->once();
+
+        $job = new RequestStatus;
+        $job->handle($verisureClient);
     }
 
     public function tearDown(): void

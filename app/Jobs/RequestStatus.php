@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use Exception;
 use App\VerisureClient;
 use App\Events\StatusCreated;
 use Illuminate\Bus\Queueable;
@@ -26,14 +27,23 @@ class RequestStatus implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Execute the job to request the status of the alarm.
      *
      * @param VerisureClient $client The instance of VerisureClient
      * @return void
      */
     public function handle(VerisureClient $client)
     {
-        $jobId = $client->status();
-        event(new StatusCreated($jobId, $this->notify));
+        try {
+            $jobId = $client->status();
+        } catch (Exception $e) {
+            $client->logout();
+            $client->login();
+            throw new Exception("Request failed, logging in and trying again");
+        }
+
+        if (isset($jobId)) {
+            event(new StatusCreated($jobId, $this->notify));
+        }
     }
 }

@@ -7,7 +7,6 @@ use Carbon\Carbon;
 use Tests\TestCase;
 use App\VerisureClient;
 use GuzzleHttp\Psr7\Response;
-use App\Exceptions\StatusException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class VerisureClientStatusTest extends TestCase
@@ -53,7 +52,7 @@ class VerisureClientStatusTest extends TestCase
     }
 
     /**
-     * Test a StatusException is thown if the status code is not 201
+     * Test an Exception is thown if the status code is not 201
      *
      * @return void
      */
@@ -62,7 +61,7 @@ class VerisureClientStatusTest extends TestCase
         $this->createSession();
         $this->expectException(Exception::class);
         // The VerisureClient expects a status 201 when asking for a Status
-        $response = new Response(200, []);
+        $response = new Response(200, [], json_encode(['job_id' => 'ok']));
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
         $client->status();
