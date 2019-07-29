@@ -17,7 +17,12 @@ return [
         "max_calls" => env("VERISURE_STATUS_JOBS_MAX_CALLS", 5),
         "sleep_between_calls" => env("VERISURE_STATUS_JOBS_SLEEP", 3),
     ],
-    "keep_session_alive" => env("VERISURE_KEEP_SESSION_ALIVE", false),
+    "session" => [
+        "keep_alive" => env("VERISURE_SESSION_KEEP_ALIVE", false),
+        // After this amount of time (in MINUTES) fram his creation, a token will be considered invalid
+        // We enable this as Verisure starts raising suspicions after long active sessions
+        "ttl" => env("VERISURE_SESSION_TTL", 240),
+    ],
     "censure_responses" => env("VERISURE_CENSURE_RESPONSES", true),
 
     // TODO check if we can merge these 2
