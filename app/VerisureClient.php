@@ -115,15 +115,15 @@ class VerisureClient
         $this->setSession();
         if ($this->session->isValid()) {
             $request = new Request("GET", config("verisure.url") . "/gb/logout", $this->headers());
-
+            
             // Guzzle will throw an exception if the response is not in the 2xx
             $response = $this->client->send($request);
             $body = $response->getBody()->getContents();
             log_response($response, $body, 'logout');
 
-            if ($response->getStatusCode() == 302) {
-                // Delete the session
-                $this->session->delete();
+            if ($response->getStatusCode() == 200) {
+                // Delete all the active sessions
+                Session::query()->delete();
                 return json_decode($body);
             }
             throw new Exception("Server responded with status code: " . $response->getStatusCode());

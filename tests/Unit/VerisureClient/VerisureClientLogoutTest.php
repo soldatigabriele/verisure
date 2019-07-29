@@ -21,14 +21,16 @@ class VerisureClientLogoutTest extends TestCase
     public function testLogout()
     {
         // Create a valid session
-        $session = $this->createSession();
+        $sessionOne = $this->createSession();
+        $sessionTwo = $this->createSession();
 
-        $response = new Response(302, []);
+        $response = new Response(200, []);
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
         $client->logout();
 
-        $this->assertNotNull($session->fresh()->deleted_at);
+        $this->assertNotNull($sessionOne->fresh()->deleted_at);
+        $this->assertNotNull($sessionTwo->fresh()->deleted_at);
     }
 
     /**
@@ -42,7 +44,7 @@ class VerisureClientLogoutTest extends TestCase
         // Create a valid session
         $this->createSession();
 
-        $response = new Response(200, []);
+        $response = new Response(404, []);
         $guzzleClient = $this->mockGuzzle($response);
         $client = new VerisureClient($guzzleClient);
         $client->logout();
