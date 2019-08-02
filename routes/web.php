@@ -30,3 +30,7 @@ Route::middleware('auth')->group(function () {
         return view('response')->with(['response' => $response]);
     })->name('response');
 });
+
+Route::get('/page', function(){
+    return view('page');
+});
