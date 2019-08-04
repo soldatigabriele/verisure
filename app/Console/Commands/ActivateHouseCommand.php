@@ -14,7 +14,7 @@ class ActivateHouseCommand extends Command
      * @var string
      */
     protected $signature = 'verisure:house-activate
-        {--mode=: Alarm mode full, night, day}
+        {--mode=: Alarm mode house, night, day}
     ';
 
     /**
@@ -41,7 +41,7 @@ class ActivateHouseCommand extends Command
      */
     public function handle()
     {
-        $mode = $this->option('mode') ?? 'full';
+        $mode = $this->option('mode') ?? 'house';
         // "false" is the notification
         ActivateHouse::dispatch($mode, false);
     }
