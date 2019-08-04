@@ -14,7 +14,7 @@ class ActivateHouseCommand extends Command
      * @var string
      */
     protected $signature = 'verisure:house-activate
-        {--mode : Alarm mode full, night, day}
+        {--mode=: Alarm mode full, night, day}
     ';
 
     /**
