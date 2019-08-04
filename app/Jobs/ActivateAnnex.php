@@ -13,14 +13,16 @@ class ActivateAnnex implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
+    public $notify;
+
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(bool $notify = true)
     {
-        //
+        $this->notify = $notify;
     }
 
     /**
@@ -32,6 +34,6 @@ class ActivateAnnex implements ShouldQueue
     public function handle(VerisureClient $client)
     {
         $jobId = $client->activateAnnex();
-        event(new StatusCreated($jobId));
+        event(new StatusCreated($jobId, $this->notify));
     }
 }

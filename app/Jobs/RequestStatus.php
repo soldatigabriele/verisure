@@ -14,7 +14,7 @@ class RequestStatus implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
-    public $jobId;
+    public $notify;
 
     /**
      * Create a new job instance.

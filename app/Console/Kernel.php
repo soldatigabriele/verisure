@@ -3,6 +3,11 @@
 namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
+use App\Console\Commands\ActivateAnnexCommand;
+use App\Console\Commands\ActivateHouseCommand;
+use App\Console\Commands\RequestStatusCommand;
+use App\Console\Commands\DeactivateAnnexCommand;
+use App\Console\Commands\DeactivateHouseCommand;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
@@ -13,7 +18,11 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        RequestStatusCommand::class,
+        ActivateAnnexCommand::class,
+        DeactivateAnnexCommand::class,
+        ActivateHouseCommand::class,
+        DeactivateHouseCommand::class,
     ];
 
     /**

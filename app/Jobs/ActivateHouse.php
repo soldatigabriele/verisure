@@ -14,6 +14,7 @@ class ActivateHouse implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable;
 
     public $mode;
+    public $notify;
 
     /**
      * Create a new job instance.
@@ -21,9 +22,10 @@ class ActivateHouse implements ShouldQueue
      * @param string $mode The request mode, can be full, day or night
      * @return void
      */
-    public function __construct($mode)
+    public function __construct($mode, $notify = true)
     {
         $this->mode = $mode;
+        $this->notify = $notify;
     }
 
     /**
@@ -35,6 +37,6 @@ class ActivateHouse implements ShouldQueue
     public function handle(VerisureClient $client)
     {
         $jobId = $client->activate($this->mode);
-        event(new StatusCreated($jobId));
+        event(new StatusCreated($jobId, $this->notify));
     }
 }
