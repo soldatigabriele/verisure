@@ -39,7 +39,7 @@ class Kernel extends ConsoleKernel
             $schedule->command('verisure:annex-activate')->cron(config('verisure.settings.schedule.annex.activate.cron'));
         }
         if (config('verisure.settings.schedule.annex.deactivate.enabled')) {
-            $schedule->command('verisure:annex-activate')->cron(config('verisure.settings.schedule.annex.deactivate.cron'));
+            $schedule->command('verisure:annex-deactivate')->cron(config('verisure.settings.schedule.annex.deactivate.cron'));
         }
     }
 
