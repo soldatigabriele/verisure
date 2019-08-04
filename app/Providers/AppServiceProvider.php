@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\VerisureClient;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
             return new VerisureClient;
         });
 
-        if(!is_test()){
+        if(!is_test() && Schema::hasTable('settings')){
             // Load the custom configuration from the DB
             config(['verisure.settings' => load_custom_config()]);
         }
