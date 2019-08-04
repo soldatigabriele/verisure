@@ -36,7 +36,7 @@ class StatusTest extends TestCase
         $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => 'test', 'status' => 'ok']);
         // The test doesn't fail, as we don't expect Guzzle to try and make the call to notify
         $notificationSystem = $this->mockGuzzle([]);
-        config()->set(['verisure.notification.enabled' => false]);
+        config()->set(['verisure.settings.notifications.enabled' => false]);
         $job = new Status('job-id-test');
         $job->handle($verisureClient, $notificationSystem);
         $this->addToAssertionCount(1);

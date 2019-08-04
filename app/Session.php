@@ -21,7 +21,7 @@ class Session extends Model
      */
     public function isExpired()
     {
-        return $this->expires < Carbon::now() || $this->created_at->addMinutes(config('verisure.session.ttl')) < now();
+        return $this->expires < Carbon::now() || $this->created_at->addMinutes(config('verisure.settings.session.ttl')) < now();
     }
 
     /**

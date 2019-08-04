@@ -21,5 +21,5 @@ Route::middleware(['api', 'token'])->group(function () {
         ]);
     });
 
-    Route::get('/records/', 'RecordsController@get');
+    Route::get('/records', 'RecordsController@get');
 });

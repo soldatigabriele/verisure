@@ -8,6 +8,7 @@
 @endsection
 
 @section('content')
+
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-12" style="margin:20px;">
@@ -17,10 +18,14 @@
                         <a href="{{route('requests')}}">Requests list</a>
                         <br>
                         <a href="{{route('responses')}}">Responses list</a>
+                        <br>
+                        <a href="{{route('settings')}}">Settings</a>
                     </div>
                 </div>
             </div>
         </div>
+
+    <actions-component></actions-component>
 
     </div>
 </div>

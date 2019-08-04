@@ -256,7 +256,7 @@ class VerisureClient
         $counter = 0;
         $status = "queued";
         while ($status == "working" || $status == "queued") {
-            if ($counter > config('verisure.status_job.max_calls')) {
+            if ($counter > config('verisure.settings.status_job.max_calls')) {
                 throw new Exception("Too many attempts");
             }
 
@@ -273,7 +273,7 @@ class VerisureClient
             $counter++;
             // In production, add a timer between the requests
             if (!is_test() && $status !== "completed") {
-                sleep(config('verisure.status_job.sleep_between_calls'));
+                sleep(config('verisure.settings.status_job.sleep_between_calls'));
             }
         }
 

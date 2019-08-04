@@ -8,7 +8,6 @@ Auth::routes(['register' => false, 'reset' => false]);
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
         $responses = \App\Response::latest('id')->get();
-        // dd($responses);
         return view('home')->with(['responses' => $responses]);
     })->name('home');
 
@@ -29,4 +28,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/response/{response}', function (Response $response) {
         return view('response')->with(['response' => $response]);
     })->name('response');
+
+    // Get the list of settings
+    Route::get('/settings', 'SettingsController@get');
+    // Update a specific setting
+    Route::post('/settings', 'SettingsController@update');
+
+    // Delete the sessions
+    Route::delete('/sessions', function(){
+        \App\Session::query()->delete();
+        return response()->json([
+            "status" => "ok",
+            "message" => "All sessions have been invalidate",
+        ]);
+    });
+    
+    Route::get('/options', function(){
+        return view('settings');
+    })->name('settings');
 });

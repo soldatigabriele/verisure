@@ -11,11 +11,11 @@ use GuzzleHttp\Client;
 use App\VerisureClient;
 use Illuminate\Support\Str;
 use GuzzleHttp\Psr7\Response;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class VerisureClientLoginTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     /**
      * Login test.

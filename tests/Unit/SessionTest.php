@@ -6,11 +6,11 @@ use App\Session;
 use Carbon\Carbon;
 use Tests\TestCase;
 use Illuminate\Support\Str;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class SessionTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     /**
      * Test session expired
@@ -57,7 +57,7 @@ class SessionTest extends TestCase
             'csrf' => Str::random(20),
             'value' => Str::random(20),
             'expires' => Carbon::tomorrow(),
-            'created_at' => Carbon::now()->subMinutes(config('verisure.session.ttl') + 1),
+            'created_at' => Carbon::now()->subMinutes(config('verisure.settings.session.ttl') + 1),
         ]);
         $this->assertTrue($session->isExpired());
 
@@ -66,7 +66,7 @@ class SessionTest extends TestCase
             'csrf' => Str::random(20),
             'value' => Str::random(20),
             'expires' => Carbon::tomorrow(),
-            'created_at' => Carbon::now()->subMinutes(config('verisure.session.ttl') - 1),
+            'created_at' => Carbon::now()->subMinutes(config('verisure.settings.session.ttl') - 1),
         ]);
         $this->assertTrue($session->isValid());
     }
