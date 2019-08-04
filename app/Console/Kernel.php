@@ -41,6 +41,18 @@ class Kernel extends ConsoleKernel
         if (config('verisure.settings.schedule.annex.deactivate.enabled')) {
             $schedule->command('verisure:annex-deactivate')->cron(config('verisure.settings.schedule.annex.deactivate.cron'));
         }
+        if (config('verisure.settings.schedule.house.full.enabled')) {
+            $schedule->command('verisure:house-activate --mode=full')->cron(config('verisure.settings.schedule.house.full.cron'));
+        }
+        if (config('verisure.settings.schedule.house.day.enabled')) {
+            $schedule->command('verisure:house-activate --mode=day')->cron(config('verisure.settings.schedule.house.day.cron'));
+        }
+        if (config('verisure.settings.schedule.house.night.enabled')) {
+            $schedule->command('verisure:house-activate --mode=night')->cron(config('verisure.settings.schedule.house.night.cron'));
+        }
+        if (config('verisure.settings.schedule.house.deactivate.enabled')) {
+            $schedule->command('verisure:house-deactivate')->cron(config('verisure.settings.schedule.house.deactivate.cron'));
+        }
     }
 
     /**
