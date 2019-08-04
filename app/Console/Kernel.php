@@ -34,6 +34,13 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('verisure:status')->everyFifteenMinutes();
+
+        if (config('verisure.settings.schedule.annex.activate.enabled')) {
+            $schedule->command('verisure:annex-activate')->cron(config('verisure.settings.schedule.annex.activate.cron'));
+        }
+        if (config('verisure.settings.schedule.annex.deactivate.enabled')) {
+            $schedule->command('verisure:annex-activate')->cron(config('verisure.settings.schedule.annex.deactivate.cron'));
+        }
     }
 
     /**
