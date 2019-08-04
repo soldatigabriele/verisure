@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Handler\MockHandler;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -28,6 +29,10 @@ abstract class TestCase extends BaseTestCase
             "verisure.url" => "http://verisure-example.test",
             "verisure.auth.active" => false,
         ]);
+        $uses = array_flip(class_uses_recursive(static::class));
+        if (isset($uses[DatabaseMigrations::class])) {
+            config(['verisure.settings'=>load_custom_config()]);
+        }
     }
 
     /**

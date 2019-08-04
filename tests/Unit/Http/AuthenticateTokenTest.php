@@ -16,7 +16,7 @@ class AuthenticateTokenTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        config()->set(['verisure.auth.active' => true, 'verisure.auth.token' => Str::random(32)]);
+        config()->set(['verisure.settings.auth.active' => true, 'verisure.settings.auth.token' => Str::random(32)]);
     }
 
     /**
@@ -52,7 +52,7 @@ class AuthenticateTokenTest extends TestCase
      */
     public function testAuthorizationDisabled()
     {
-        config()->set(['verisure.auth.active' => false]);
+        config()->set(['verisure.settings.auth.active' => false]);
         $this->json('get', '/api')->assertStatus(200);
         $this->json('get', '/api', ['auth_token' => 'anything'])->assertStatus(200);
     }
@@ -64,6 +64,6 @@ class AuthenticateTokenTest extends TestCase
      */
     public function testAuthorizationSuccess()
     {
-        $this->json('get', '/api', ['auth_token' => config('verisure.auth.token')])->assertStatus(200);
+        $this->json('get', '/api', ['auth_token' => config('verisure.settings.auth.token')])->assertStatus(200);
     }
 }

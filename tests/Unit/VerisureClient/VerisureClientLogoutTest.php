@@ -7,11 +7,11 @@ use App\Session;
 use Tests\TestCase;
 use App\VerisureClient;
 use GuzzleHttp\Psr7\Response;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class VerisureClientLogoutTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     /**
      * Test can logout from a session

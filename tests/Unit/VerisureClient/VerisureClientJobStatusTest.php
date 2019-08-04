@@ -6,11 +6,11 @@ use App\Record;
 use Tests\TestCase;
 use App\VerisureClient;
 use GuzzleHttp\Psr7\Response;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class VerisureClientJobStatusTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     /**
      * Test the job status
@@ -52,7 +52,7 @@ class VerisureClientJobStatusTest extends TestCase
      */
     public function testLogStatusResponseUncensored()
     {
-        config()->set(['verisure.censure_responses' => false]);
+        config()->set(['verisure.settings.censure_responses' => false]);
         $this->createSession();
         $this->callJobStatus(['completed'], [
             "options" => ["user" => "{ some_extra_content_here }"], "name" => "RemoteConnectNightWorker( some_extra_content_here ) ", "message" => ["message" => "foo"],

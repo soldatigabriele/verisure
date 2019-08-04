@@ -7,11 +7,11 @@ use App\Record;
 use Tests\TestCase;
 use App\VerisureClient;
 use GuzzleHttp\Psr7\Response;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class VerisureClientJobStatusFailsTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     /**
      * Test a failed attempt to activate alarm (window open)
@@ -52,7 +52,7 @@ class VerisureClientJobStatusFailsTest extends TestCase
     {
         $this->createSession();
         $this->expectException(Exception::class);
-        for ($i = 0; $i < config('verisure.status_job.max_calls') + 1; $i++) {
+        for ($i = 0; $i < config('verisure.settings.status_job.max_calls') + 1; $i++) {
             $statuses[] = "working";
         }
         // Calle the jobStatus method on the VerisureClient

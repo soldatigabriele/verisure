@@ -1,6 +1,7 @@
 <?php
 
 use App\Request;
+use App\Setting;
 use GuzzleHttp\Psr7\Response;
 use App\Response as LogResponse;
 
@@ -17,7 +18,7 @@ if (!function_exists('log_response')) {
         $log = new LogResponse;
 
         $body = json_decode($body, true);
-        if (config('verisure.censure_responses')) {
+        if (config('verisure.settings.censure_responses')) {
             // Note: we remove the errors and the content we don't need as they
             // were returning a bunch of extra heavy data for every response
             $body['options']['user'] = '...';
@@ -36,7 +37,36 @@ if (!function_exists('log_response')) {
         }
         $log->save();
     }
+}
 
+
+if (!function_exists('load_custom_config')) {
+
+    /**
+     * Load the Settings from the DB into the config
+     *
+     * @return bool
+     */
+    function load_custom_config(): array
+    {
+        $settings = Setting::all([
+            'key', 'value',
+        ])
+        ->keyBy('key')
+        ->transform(function ($setting) {
+            return $setting->value; // return only the value
+        })
+        ->toArray();
+        
+        $tmpSettings = [];
+        foreach($settings as $key => $value){
+            array_set($tmpSettings, $key, $value);
+        }
+        return $tmpSettings;
+    }
+}
+
+if (!function_exists('is_test')) {
     /**
      * Check if the env is test
      *

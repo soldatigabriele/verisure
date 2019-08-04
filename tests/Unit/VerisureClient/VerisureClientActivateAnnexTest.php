@@ -6,11 +6,11 @@ use Exception;
 use Tests\TestCase;
 use App\VerisureClient;
 use GuzzleHttp\Psr7\Response;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class VerisureClientActivateAnnexTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     /**
      * Test the annex alarm can be activated

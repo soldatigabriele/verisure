@@ -4,18 +4,11 @@ namespace Tests\Unit\Http\Controllers;
 
 use App\Record;
 use Tests\TestCase;
-use Illuminate\Support\Facades\Queue;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class RecordsControllerTest extends TestCase
 {
-    use RefreshDatabase;
-
-    public function setUp(): void
-    {
-        parent::setUp();
-        Queue::fake();
-    }
+    use DatabaseMigrations;
 
     /**
      * Test get the latest recorded status
@@ -24,7 +17,7 @@ class RecordsControllerTest extends TestCase
      */
     public function testGet()
     {
-        $this->withoutExceptionHandling();
+        $this->withoutMiddleware();
         $record = factory(Record::class)->create();
 
         $response = $this->json('get', '/api/records')->assertStatus(200);

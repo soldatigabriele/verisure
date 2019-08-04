@@ -41,7 +41,6 @@
 </head>
 <body>
     <div id="app">
-    {{--
         <nav class="navbar navbar-expand-md navbar-dark shadow-sm banner" style="background: #fd0033;color:white;">
             <div class="container">
                 <a class="" href="{{ route('home') }}">
@@ -92,7 +91,6 @@
                 </div>
             </div>
         </nav>
-        --}}
 
         <main class="py-4">
             @yield('content')
