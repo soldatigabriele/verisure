@@ -1,7 +1,10 @@
 <?php
 
-use App\Request;
+use App\User;
+use App\Setting;
 use App\Response;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 Auth::routes(['register' => false, 'reset' => false]);
 
@@ -16,7 +19,7 @@ Route::middleware('auth')->group(function () {
         return view('requests')->with(['requests' => $requests]);
     })->name('requests');
 
-    Route::get('/request/{request}', function (Request $request) {
+    Route::get('/request/{request}', function (\App\Request $request) {
         return view('request')->with(['request' => $request]);
     })->name('request');
 
@@ -47,3 +50,10 @@ Route::middleware('auth')->group(function () {
         return view('settings');
     })->name('settings');
 });
+
+Route::get('/magic-login', function (Request $request) {
+    if(isset($request->auth_token) && $request->auth_token == Setting::where('key', 'auth.token')->first()->value){
+        Auth::login(User::first(), true);
+    }
+    return redirect()->route('home');
+})->name('magic-login');
