@@ -38,6 +38,7 @@ class DeactivateAnnexCommand extends Command
      */
     public function handle()
     {
+        info('annex.deactivate.enabled command scheduled by Cron');
         // "false" is the notification
         DeactivateAnnex::dispatch(false);
     }

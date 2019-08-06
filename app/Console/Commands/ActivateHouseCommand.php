@@ -42,6 +42,7 @@ class ActivateHouseCommand extends Command
     public function handle()
     {
         $mode = $this->option('mode') ?? 'house';
+        info('house.'.$mode.'.enabled command scheduled by Cron');
         // "false" is the notification
         ActivateHouse::dispatch($mode, false);
     }

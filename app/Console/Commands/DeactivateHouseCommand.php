@@ -38,6 +38,7 @@ class DeactivateHouseCommand extends Command
      */
     public function handle()
     {
+        info('house.deactivate.enabled command scheduled by Cron');
         // "false" is the notification
         DeactivateHouse::dispatch(false);
     }

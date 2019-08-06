@@ -36,27 +36,21 @@ class Kernel extends ConsoleKernel
         $schedule->command('verisure:status')->everyFifteenMinutes();
 
         if (config('verisure.settings.schedule.annex.activate.enabled')) {
-            info('annex.activate.enabled command scheduled by Cron');
             $schedule->command('verisure:annex-activate')->cron(config('verisure.settings.schedule.annex.activate.cron'));
         }
         if (config('verisure.settings.schedule.annex.deactivate.enabled')) {
-            info('annex.deactivate.enabled command scheduled by Cron');
             $schedule->command('verisure:annex-deactivate')->cron(config('verisure.settings.schedule.annex.deactivate.cron'));
         }
         if (config('verisure.settings.schedule.house.full.enabled')) {
-            info('house.full.enabled command scheduled by Cron');
             $schedule->command('verisure:house-activate --mode=house')->cron(config('verisure.settings.schedule.house.full.cron'));
         }
         if (config('verisure.settings.schedule.house.day.enabled')) {
-            info('house.day.enabled command scheduled by Cron');
             $schedule->command('verisure:house-activate --mode=day')->cron(config('verisure.settings.schedule.house.day.cron'));
         }
         if (config('verisure.settings.schedule.house.night.enabled')) {
-            info('house.night.enabled command scheduled by Cron');
             $schedule->command('verisure:house-activate --mode=night')->cron(config('verisure.settings.schedule.house.night.cron'));
         }
         if (config('verisure.settings.schedule.house.deactivate.enabled')) {
-            info('house.deactivate.enabled command scheduled by Cron');
             $schedule->command('verisure:house-deactivate')->cron(config('verisure.settings.schedule.house.deactivate.cron'));
         }
     }
