@@ -7,6 +7,14 @@ Route::middleware(['api', 'token'])->group(function () {
     Route::get('/login', 'VerisureController@login');
     Route::get('/logout', 'VerisureController@logout');
     Route::get('/status', 'VerisureController@status');
+    /**
+     * Examples of routes to activate the alarm
+     * 
+     * api/activate/house/night
+     * api/activate/house/day
+     * api/activate/house/house
+     * api/activate/garage
+     */
     Route::get('/activate/{system}/{mode?}', 'VerisureController@activate');
     Route::get('/deactivate/{system}', 'VerisureController@deactivate');
 
