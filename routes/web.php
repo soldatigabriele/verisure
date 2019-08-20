@@ -46,6 +46,9 @@ Route::middleware('auth')->group(function () {
         ]);
     });
     
+    Route::post('/activate/{system}/{mode?}', 'VerisureController@activate');
+    Route::post('/deactivate/{system}', 'VerisureController@deactivate');
+    
     Route::get('/options', function(){
         return view('settings');
     })->name('settings');
