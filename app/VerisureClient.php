@@ -266,7 +266,10 @@ class VerisureClient
 
         if ($status == "failed") {
             // Note: the message in the failed response is not under ['message']['message']
-            Record::create(['body' => $response->message]);
+            Record::create(['body' => $errorMessage = $response->message]);
+            if ($errorMessage = "We have had problems identifying you, please end session and log in again.") {
+                $this->logout();
+            }
             return ["status" => $status, "message" => $response->message];
         }
         if ($status == "completed") {

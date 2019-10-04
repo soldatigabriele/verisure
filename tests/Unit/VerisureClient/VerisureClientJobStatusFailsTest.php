@@ -20,12 +20,27 @@ class VerisureClientJobStatusFailsTest extends TestCase
      */
     public function testJobStatusFailsOpenWindow()
     {
-        $this->createSession();
+        $session = $this->createSession();
         $message = $this->callJobStatus(['working', 'failed'], ["message" => $alarmMessage = "Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again."]);
 
         $this->assertEquals('failed', $message['status']);
         $this->assertEquals(2, \App\Response::count());
         $this->assertEquals($alarmMessage, Record::first()->body);
+        $this->assertNull($session->deleted_at);
+    }
+
+    /**
+     * Test a failed attempt to activate alarm (We have had problems identifying you, please end session and log in again.)
+     *
+     * @return void
+     */
+    public function testJobStatusFailsIdentificationProblems()
+    {
+        $session = $this->createSession();
+        $this->assertNull($session->deleted_at);
+        $this->callJobStatus(['working', 'failed'], ["message" => $alarmMessage = "We have had problems identifying you, please end session and log in again."]);
+        // We want to logout and try the job again
+        $this->assertNotNull($session->fresh()->deleted_at);
     }
 
     /**
