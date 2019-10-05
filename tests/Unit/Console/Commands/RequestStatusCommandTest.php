@@ -20,7 +20,7 @@ class RequestStatusCommandTest extends TestCase
         config(['verisure.settings.session.keep_alive' => true]);
         $command = new RequestStatusCommand;
         $command->handle();
-        Queue::assertPushedOn('high', \App\Jobs\RequestStatus::class);
+        Queue::assertPushed(\App\Jobs\RequestStatus::class);
     }
 
     /**

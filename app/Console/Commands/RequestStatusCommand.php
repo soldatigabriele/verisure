@@ -40,7 +40,7 @@ class RequestStatusCommand extends Command
     {
         if (config('verisure.settings.session.keep_alive')) {
             // "false" is the notification
-            RequestStatus::dispatch(false)->onQueue('high');
+            RequestStatus::dispatch(false);
         }
     }
 }
