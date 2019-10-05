@@ -23,9 +23,17 @@ Route::middleware('auth')->group(function () {
         return view('request')->with(['request' => $request]);
     })->name('request');
 
-    Route::get('/responses', function () {
-        $responses = \App\Response::latest('id')->paginate(20);
-        return view('responses')->with(['responses' => $responses]);
+    Route::get('/responses', function (Request $request) {
+        $responses = \App\Response::latest('id')->get();
+        if ($request->has('excluded_statuses')) {
+            $statuses = explode(',', $request->excluded_statuses);
+            $responses = $responses->filter(function ($response) use ($statuses) {
+                if (isset($response->body['status'])) {
+                    return (!in_array($response->body['status'], $statuses));
+                }
+            });
+        }
+        return view('responses')->with(['responses' => $responses->paginate()]);
     })->name('responses');
 
     Route::get('/response/{response}', function (Response $response) {
@@ -38,24 +46,24 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings', 'SettingsController@update');
 
     // Delete the sessions
-    Route::delete('/sessions', function(){
+    Route::delete('/sessions', function () {
         \App\Session::query()->delete();
         return response()->json([
             "status" => "ok",
             "message" => "All sessions have been invalidate",
         ]);
     });
-    
+
     Route::post('/activate/{system}/{mode?}', 'VerisureController@activate');
     Route::post('/deactivate/{system}', 'VerisureController@deactivate');
-    
-    Route::get('/options', function(){
+
+    Route::get('/options', function () {
         return view('settings');
     })->name('settings');
 });
 
 Route::get('/magic-login', function (Request $request) {
-    if(isset($request->auth_token) && $request->auth_token == Setting::where('key', 'auth.token')->first()->value){
+    if (isset($request->auth_token) && $request->auth_token == Setting::where('key', 'auth.token')->first()->value) {
         Auth::login(User::first(), true);
     }
     return redirect()->route('home');
