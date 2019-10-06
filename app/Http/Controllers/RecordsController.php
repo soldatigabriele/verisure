@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Record;
+use App\Status;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -15,23 +15,30 @@ class RecordsController extends BaseController
     /**
      * Get the latest status recorded of the alarm
      *
+     * Garage:
+     * OFF    0
+     * ON     1
+     *
+     * House:
+     * OFF    0
+     * FULL   1
+     * DAY    2
+     * NIGHT  3
+     *
      * @return void
      */
     public function get()
     {
-        $record = Record::latest('id')->first();
-
-        if ($record) {
-
-            return response()->json([
-                "message" => $record->body,
-                "age" => $record->created_at->diffForHumans(),
-                "created_at" => $record->created_at->format('d/m/Y H:i:s'),
-            ]);
-        }
+        $status = Status::firstOrFail();
+        $map = [
+            0 => 'OFF',
+            1 => 'ON',
+            2 => 'DAY',
+            3 => 'NIGHT',
+        ];
         return response()->json([
-            "message" => "no record found",
-            "age" => now(),
+            "message" => "House: " . $map[$status->house] . " Garage: " . $map[$status->garage],
+            "age" => $status->updated_at->diffForHumans(),
         ]);
     }
 }
