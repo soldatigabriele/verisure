@@ -33,7 +33,7 @@ Route::middleware('auth')->group(function () {
                 }
             });
         }
-        return view('responses')->with(['responses' => $responses->paginate()]);
+        return view('responses');
     })->name('responses');
 
     Route::get('/response/{response}', function (Response $response) {

@@ -16,7 +16,6 @@
 
     <settings-component></settings-component>
 
-
 </div>
 
 @endsection

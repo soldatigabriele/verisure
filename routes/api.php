@@ -1,5 +1,8 @@
 <?php
 
+use App\Response;
+use Illuminate\Http\Request;
+
 Route::middleware(['api', 'token'])->group(function () {
     Route::get('/', function () {
         return app()->version();
@@ -9,7 +12,7 @@ Route::middleware(['api', 'token'])->group(function () {
     Route::get('/status', 'VerisureController@status');
     /**
      * Examples of routes to activate the alarm
-     * 
+     *
      * api/activate/house/night
      * api/activate/house/day
      * api/activate/house/house
@@ -31,3 +34,26 @@ Route::middleware(['api', 'token'])->group(function () {
 
     Route::get('/records', 'RecordsController@get');
 });
+
+Route::get('/responses', function (Request $request) {
+    $responses = \App\Response::latest('id')->get();
+    if ($request->has('excluded_statuses')) {
+        $statuses = explode(',', $request->excluded_statuses);
+        $responses = $responses->filter(function ($response) use ($statuses) {
+            if (in_array('jobs', $statuses) && isset($response->body['job_id'])) {
+                return false;
+            }
+            if (isset($response->body['status'])) {
+                return (!in_array($response->body['status'], $statuses));
+            } else {
+                return !in_array($response->request_type, $statuses);
+            }
+            return true;
+        });
+    }
+    return response()->json($responses->paginate($request->per_page ?? 13));
+})->name('responses');
+
+Route::get('/response/{response}', function (Response $response) {
+    return view('response')->with(['response' => $response]);
+})->name('response');
