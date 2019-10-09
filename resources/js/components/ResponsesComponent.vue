@@ -173,7 +173,11 @@ export default {
     }
   },
   mounted() {
-    this.fetchResponses()
+    var that = this
+    that.fetchResponses()
+    setInterval(function(){ 
+      that.fetchResponses()
+    }, 2000)
   },
   watch: {
     "axiosparams.page": {
