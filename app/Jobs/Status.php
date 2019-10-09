@@ -92,7 +92,10 @@ class Status implements ShouldQueue
 
         // Update the Status record
         if (isset($cases[$message])) {
-            StatusRecord::first()->update($cases[$message]);
+            $status = StatusRecord::first();
+            $status->update($cases[$message]);
+            // Update the updated_at field if nothing changed 
+            $status->touch();
         } elseif (!is_test()) {
             app('log')->warning('could not update the status because we got a new unmapped message ("' . $message . '"). Check Jobs/Status@parseResponse()');
             $this->sendNotification(['status' => 'warning', 'message' => 'undefined message: check the logs for more info']);
