@@ -54,6 +54,12 @@ Route::middleware('auth')->group(function () {
         ]);
     });
 
+    // Show the latest record
+    Route::get('/records', 'RecordsController@get');
+    
+    // Request the status
+    Route::get('/status', 'VerisureController@status');
+
     Route::post('/activate/{system}/{mode?}', 'VerisureController@activate');
     Route::post('/deactivate/{system}', 'VerisureController@deactivate');
 

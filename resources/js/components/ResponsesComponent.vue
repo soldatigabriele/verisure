@@ -1,56 +1,58 @@
 <style>
-    .card-header{
+    .card-header {
         font-size: 18px;
+    }
+    .search {
+      position:relative;
+      float:right;
     }
 </style>
 
 <template>
-  <div>
-
-    <div class="card" style="margin: 0px 20px;">
+  <div class="col-md-12">
+    <div class="card">
       <div class="card-header">
+
         <i class="fas fa-angle-double-down"></i> Responses
+        <div v-if="home" class="search">
+          <a :href="responses_link">
+            <i class="fas fa-search"></i>
+          </a>
+        </div>
+
       </div>
       <div class="card-body">
-        <span>Per page</span>
-        <select v-model="axiosparams.per_page">
-          <option disabled>13</option>
-          <option>10</option>
-          <option>20</option>
-          <option>30</option>
-          <option>50</option>
-          <option>100</option>
-        </select>
+        <div v-if="!home" class="filters">
 
-        Hide statuses:
-        <input type="checkbox" id="working" value="working" v-model="axiosparams.excluded_statuses">
-        <label for="working">working</label>
-        <input type="checkbox" id="queued" value="queued" v-model="axiosparams.excluded_statuses">
-        <label for="queued">queued</label>
-        <input type="checkbox" id="completed" value="completed" v-model="axiosparams.excluded_statuses">
-        <label for="completed">completed</label>
-        <input type="checkbox" id="failed" value="failed" v-model="axiosparams.excluded_statuses">
-        <label for="failed">failed</label>
-        
-        <input type="checkbox" id="jobs" value="jobs" v-model="axiosparams.excluded_statuses">
-        <label for="jobs">jobs</label>
+          <span>Per page</span>
+          <select v-model="axiosparams.per_page">
+            <option disabled>13</option>
+            <option>10</option>
+            <option>20</option>
+            <option>30</option>
+            <option>50</option>
+            <option>100</option>
+          </select>
 
-        <input type="checkbox" id="login" value="login" v-model="axiosparams.excluded_statuses">
-        <label for="login">login</label>
-        <input type="checkbox" id="logout" value="logout" v-model="axiosparams.excluded_statuses">
-        <label for="logout">logout</label>
-        <!--
-        <input type="checkbox" id="requested" value="status request" v-model="axiosparams.excluded_statuses">
-        <label for="requested">requested</label>
-        <input type="checkbox" id="activate garage" value="activate garage" v-model="axiosparams.excluded_statuses">
-        <label for="activate garage">activate garage</label>
-        <input type="checkbox" id="deactivate garage" value="deactivate garage" v-model="axiosparams.excluded_statuses">
-        <label for="deactivate garage">deactivate garage</label>
-        <input type="checkbox" id="activate house" value="activate house" v-model="axiosparams.excluded_statuses">
-        <label for="activate house">activate house</label>
-        <input type="checkbox" id="deactivate house" value="deactivate house" v-model="axiosparams.excluded_statuses">
-        <label for="deactivate house">deactivate house</label>
-        -->
+          Hide statuses:
+          <input type="checkbox" id="working" value="working" v-model="axiosparams.excluded_statuses">
+          <label for="working">working</label>
+          <input type="checkbox" id="queued" value="queued" v-model="axiosparams.excluded_statuses">
+          <label for="queued">queued</label>
+          <input type="checkbox" id="completed" value="completed" v-model="axiosparams.excluded_statuses">
+          <label for="completed">completed</label>
+          <input type="checkbox" id="failed" value="failed" v-model="axiosparams.excluded_statuses">
+          <label for="failed">failed</label>
+          
+          <input type="checkbox" id="jobs" value="jobs" v-model="axiosparams.excluded_statuses">
+          <label for="jobs">jobs</label>
+
+          <input type="checkbox" id="login" value="login" v-model="axiosparams.excluded_statuses">
+          <label for="login">login</label>
+          <input type="checkbox" id="logout" value="logout" v-model="axiosparams.excluded_statuses">
+          <label for="logout">logout</label>
+        </div>
+
         <table class="table">
           <thead>
             <tr>
@@ -70,7 +72,7 @@
               <td>{{ longAgo(response.created_at) }} - {{ formattedDate(response.created_at) }}</td>
             </tr>
 
-            <nav aria-label="Page navigation example">
+            <nav aria-label="navigation" v-if="!home">
               <ul class="pagination">
                 <li class="page-item"><a href="#" class="page-link" @click="firstpage()">First</a></li>
                 <li class="page-item" v-bind:class="{'disabled': pagination.is_first_page}"><a href="#" class="page-link" @click="decrementpage()"><<</a></li>
@@ -88,9 +90,6 @@
   </div>
 </template>
 
-<style>
-</style>
-
 <script>
 import moment from "moment";
 import _ from "lodash";
@@ -98,6 +97,7 @@ import notify from "bootstrap-notify";
 import parser from "cron-parser";
 
 export default {
+  props: ['limit', 'hide', 'home', 'responses_link'],
   data() {
     return {
       responses: {},
@@ -114,7 +114,7 @@ export default {
       },
       axiosparams: {
         page: 1,
-        per_page: 13,
+        per_page: this.limit || 13,
         excluded_statuses: [],
       }
     };
@@ -173,6 +173,9 @@ export default {
     }
   },
   mounted() {
+    if (this.hide) {
+      this.axiosparams.excluded_statuses = this.hide.split(',');
+    }
     var that = this
     that.fetchResponses()
     setInterval(function(){ 

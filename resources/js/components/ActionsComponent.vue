@@ -1,22 +1,21 @@
 <template>
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      <div class="card">
-        <div class="card-header">Actions</div>
-        <div class="card-body">
-          House
-          <br />
-          <button class="btn btn-primary" @click="activate('house', 'full')">Full</button>
-          <button class="btn btn-primary" @click="activate('house', 'day')">Day</button>
-          <button class="btn btn-primary" @click="activate('house', 'night')">Night</button>
-          <button class="btn btn-primary" @click="deactivate('house')">Deactivate</button>
-          <hr />Garage
-          <br />
-          <button class="btn btn-primary" @click="activate('garage')">Activate</button>
-          <button class="btn btn-primary" @click="deactivate('garage')">Deactivate</button>
-          <hr />
-          <button class="btn btn-primary" @click="logout()">Logout</button>
-        </div>
+  <div class="col-md-6">
+    <div class="card action-card">
+      <div class="card-header">Actions</div>
+      <div class="card-body">
+        House
+        <br />
+        <button class="btn btn-primary" @click="activate('house', 'full')">Full</button>
+        <button class="btn btn-primary" @click="activate('house', 'day')">Day</button>
+        <button class="btn btn-primary" @click="activate('house', 'night')">Night</button>
+        <button class="btn btn-primary" @click="deactivate('house')">Deactivate</button>
+        <hr />Garage
+        <br />
+        <button class="btn btn-primary" @click="activate('garage')">Activate</button>
+        <button class="btn btn-primary" @click="deactivate('garage')">Deactivate</button>
+        <hr />
+        <button class="btn btn-primary" @click="status()">Status</button>
+        <button class="btn btn-primary" @click="logout()">Logout</button>
       </div>
     </div>
   </div>
@@ -28,6 +27,40 @@ import notify from "bootstrap-notify";
 import swal from "sweetalert2";
 export default {
   methods: {
+    status() {
+      swal.fire({
+        title: "Request status?",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Confirm'
+      }).then((result) => {
+        if (result.value) {
+          axios.get("/status").then(
+            response => {
+              if (response.status == 200) {
+                $.notify("<strong>Status requested successfully</strong>", {
+                  type: "success",
+                  newest_on_top: true
+                });
+                return;
+              }
+              $.notify(response.data.message, {
+                type: "danger",
+                newest_on_top: true
+              });
+            },
+            error => {
+              $.notify("<strong>Error</strong>", {
+                type: "danger",
+                newest_on_top: true
+              });
+            }
+          );
+        }
+      })
+    },
     logout() {
       swal.fire({
         title: "Logout?",

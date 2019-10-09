@@ -2,7 +2,8 @@
 
 @section('header-style')
 <style>
-    .headers {
+    .card {
+        margin-bottom: 20px;
     }
 </style>
 @endsection
@@ -10,23 +11,25 @@
 @section('content')
 
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-12" style="margin:20px;">
+    <div class="row">
+        <responses-component limit="4" hide="queued,working" home="true" responses_link="{{route('responses')}}"></responses-component>
+    </div>
+    <div class="row">
+        <actions-component></actions-component>
+        <monitor-component></monitor-component>
+        <div class="col-md-6">
             <div class="card">
                 <div class="card-header">Monitor</div>
-                    <div class="card-body">
-                        <a href="{{route('requests')}}">Requests list</a>
-                        <br>
-                        <a href="{{route('responses')}}">Responses list</a>
-                        <br>
-                        <a href="{{route('settings')}}">Settings</a>
-                    </div>
+                <div class="card-body">
+                    <a href="{{route('requests')}}">Requests list</a>
+                    <br>
+                    <a href="{{route('responses')}}">Responses list</a>
+                    <br>
+                    <a href="{{route('settings')}}">Settings</a>
                 </div>
             </div>
         </div>
-
-    <actions-component></actions-component>
-
     </div>
 </div>
+
 @endsection

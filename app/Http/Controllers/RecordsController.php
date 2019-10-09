@@ -37,6 +37,8 @@ class RecordsController extends BaseController
             3 => 'NIGHT',
         ];
         return response()->json([
+            "house" => $status->house,
+            "garage" => $status->garage,
             "message" => "House: " . $map[$status->house] . " Garage: " . $map[$status->garage],
             "age" => $status->updated_at->diffForHumans(),
         ]);
