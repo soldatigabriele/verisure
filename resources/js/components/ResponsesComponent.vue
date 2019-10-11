@@ -1,11 +1,78 @@
 <style>
-    .card-header {
-        font-size: 18px;
+  body{
+    line-height: 1.4;
+  }
+  .filters{
+    padding-top: 3px;
+    padding-bottom: 8px;
+  }
+  .card-header {
+      font-size: 18px;
+  }
+  .search {
+    position:relative;
+    float:right;
+  }
+  .table th{
+    padding: 5px;
+  }
+  .table td{
+    padding: 5px;
+    vertical-align: middle;
+  }
+  .table{
+    margin-bottom: 0px;
+  }
+  .id_cell{
+    width: 50px;
+  }
+  .request_cell {
+    width: 130px;
+  }
+  .status_cell {
+    width: 55px;
+  }
+  .date_cell {
+    width: 240px;
+  }
+  .completed_message {
+    font-size:12px;
+    margin-left: 4px;
+    padding: 1px;
+  }
+  @media
+  only screen and (max-width: 1000px) {
+    table, thead, tbody, th, td, tr {
+      display: block;
     }
-    .search {
-      position:relative;
-      float:right;
+    thead tr {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
     }
+    tr { border: 1px solid #ccc; }
+    td {
+      border: none;
+      border-bottom: 1px solid #eee;
+      position: relative;
+      padding-left: 200px;
+      margin-left: 150px;
+    }
+    td:before {
+      position: absolute;
+      top: 12px;
+      left: 6px;
+      width: 200px;
+      padding-right: 40px;
+      white-space: nowrap;
+      margin-left: -150px;
+    }
+    td:nth-of-type(1):before { content: "#"; }
+    td:nth-of-type(2):before { content: "Request"; }
+    td:nth-of-type(3):before { content: "Status"; }
+    td:nth-of-type(4):before { content: "Description";}
+    td:nth-of-type(5):before { content: "Date"; }
+  }
 </style>
 
 <template>
@@ -56,20 +123,20 @@
         <table class="table">
           <thead>
             <tr>
-              <th>#</th>
-              <th>Request</th>
-              <th>Status</th>
-              <th>Body</th>
-              <th>Date</th>
+              <th class="id_cell">#</th>
+              <th class="request_cell">Request</th>
+              <th class="status_cell">Status</th>
+              <th class="boby_cell">Body</th>
+              <th class="date_cell">Date</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="response in responses" v-bind:key="response.id">
-              <td>{{ response.id }}</td>
-              <td>{{ response.request_type }}</td>
-              <td>{{ response.status }}</td>
-              <td v-html="parsedBody(response.body)"></td>
-              <td>{{ longAgo(response.created_at) }} - {{ formattedDate(response.created_at) }}</td>
+              <td class="id_cell">{{ response.id }}</td>
+              <td class="request_cell">{{ response.request_type }}</td>
+              <td class="status_cell">{{ response.status }}</td>
+              <td class="body_cell" v-html="parsedBody(response.body)"></td>
+              <td class="date_cell">{{ longAgo(response.created_at) }} - {{ formattedDate(response.created_at) }}</td>
             </tr>
 
             <nav aria-label="navigation" v-if="!home">
@@ -138,7 +205,7 @@ export default {
         });
     },
     formattedDate(date) {
-      return moment(date).format("DD/MM/YYYY HH:mm:ss");
+      return moment(date).format("DD/MM/YY HH:mm:ss");
     },
     longAgo(date) {
       return moment(date).fromNow();
@@ -151,7 +218,7 @@ export default {
         let message = "";
         if (body.status == "completed") message = body.message.message;
         if (body.status == "failed") message = body.message;
-        return '<span class="badge ' + badge + '">' + body.status + "</span>" + '<span class="badge badge-light">' + message + "</span>";
+        return '<span class="badge ' + badge + '">' + body.status + "</span>" + '<span class="completed_message">' + message + "</span>";
       } else {
         body = JSON.stringify(body);
         if (body.length > 100) body = body.substring(0, 100) + "...";

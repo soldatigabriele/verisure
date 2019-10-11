@@ -12,14 +12,14 @@
 
 <div class="container">
     <div class="row">
-        <responses-component limit="4" hide="queued,working" home="true" responses_link="{{route('responses')}}"></responses-component>
+        <responses-component limit="4" hide="queued,working,jobs,login,logout" home="true" responses_link="{{route('responses')}}"></responses-component>
     </div>
     <div class="row">
         <actions-component></actions-component>
         <monitor-component></monitor-component>
         <div class="col-md-6">
             <div class="card">
-                <div class="card-header">Monitor</div>
+                <div class="card-header">Links</div>
                 <div class="card-body">
                     <a href="{{route('requests')}}">Requests list</a>
                     <br>

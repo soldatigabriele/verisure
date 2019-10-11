@@ -7,6 +7,9 @@
       position:relative;
       float:right;
     }
+    .badge-danger{
+      background-color: rgb(253, 0, 51);
+    }
 </style>
 
 <template>
@@ -57,10 +60,10 @@ export default {
 
           switch (response.data.garage) {
               case 0:
-                  this.status.garage = '<span class="badge badge-danger">OFF</span>'
+                  this.status.garage = '<span class="badge badge-secondary">OFF</span>'
                   break;
               case 1:
-                  this.status.garage = '<span class="badge badge-success">ON</span>'
+                  this.status.garage = '<span class="badge badge-danger">ON</span>'
                   break;
           
               default:
@@ -69,16 +72,16 @@ export default {
           }
           switch (response.data.house) {
               case 0:
-                  this.status.house = '<span class="badge badge-danger">OFF</span>'
+                  this.status.house = '<span class="badge badge-secondary">OFF</span>'
                   break;
               case 1:
-                  this.status.house = '<span class="badge badge-success">FULL</span>'
+                  this.status.house = '<span class="badge badge-danger">FULL</span>'
                   break;
               case 2:
-                  this.status.house = '<span class="badge badge-success">DAY</span>'
+                  this.status.house = '<span class="badge badge-danger">DAY</span>'
                   break;
               case 3:
-                  this.status.house = '<span class="badge badge-success">NIGHT</span>'
+                  this.status.house = '<span class="badge badge-danger">NIGHT</span>'
                   break;
           
               default:

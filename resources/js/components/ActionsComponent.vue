@@ -1,21 +1,32 @@
+<style>
+.btn-danger {
+    color: #fff;
+    background-color: rgb(253, 0, 51);
+    border-color: rgb(253, 0, 51);
+}
+</style>
 <template>
   <div class="col-md-6">
     <div class="card action-card">
       <div class="card-header">Actions</div>
       <div class="card-body">
-        House
-        <br />
-        <button class="btn btn-primary" @click="activate('house', 'full')">Full</button>
-        <button class="btn btn-primary" @click="activate('house', 'day')">Day</button>
-        <button class="btn btn-primary" @click="activate('house', 'night')">Night</button>
-        <button class="btn btn-primary" @click="deactivate('house')">Deactivate</button>
-        <hr />Garage
-        <br />
-        <button class="btn btn-primary" @click="activate('garage')">Activate</button>
-        <button class="btn btn-primary" @click="deactivate('garage')">Deactivate</button>
+        House <br />
+        <button v-bind:class="houseFullClass" @click="activate('house', 'full')">Full - <i class="fas fa-lock"></i></button>
+        <button v-bind:class="houseDayClass" @click="activate('house', 'day')">Day - <i class="fas fa-sun"></i></button>
+        <button v-bind:class="houseNightClass" @click="activate('house', 'night')">Night - <i class="fas fa-moon"></i></button>
+        <button v-bind:class="houseDeactivateClass" @click="deactivate('house')">Off - <i class="fas fa-lock-open"></i></button>
         <hr />
-        <button class="btn btn-primary" @click="status()">Status</button>
-        <button class="btn btn-primary" @click="logout()">Logout</button>
+        Garage <br />
+        <div class="row">
+          <div class="col-6">
+            <button v-bind:class="garageActivateClass" @click="activate('garage')">On - <i class="fas fa-lock"></i></button>
+            <button v-bind:class="garageDeactivateClass" @click="deactivate('garage')">Off - <i class="fas fa-lock-open"></i></button>
+          </div>
+          <div class="col-6" style="">
+            <button class="btn btn-outline-primary" @click="status()">Status</button>
+            <button class="btn btn-outline-primary" @click="logout()">Logout</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -26,7 +37,34 @@ import _ from "lodash";
 import notify from "bootstrap-notify";
 import swal from "sweetalert2";
 export default {
+
+  data(){
+    return {
+      garageActivateClass: '',
+      garageDeactivateClass: '',
+      houseFullClass: '',
+      houseNightClass: '',
+      houseDayClass: '',
+      houseDeactivateClass: '',
+    }
+  },
+  mounted() {
+    var that = this
+    that.fetchRecord()
+    setInterval(function(){ 
+      that.fetchRecord()
+    }, 5000)
+  },
   methods: {
+    resetClasses(){
+        this.garageActivateClass = 'btn btn-outline-secondary';
+        this.garageDeactivateClass = 'btn btn-outline-secondary';
+
+        this.houseDeactivateClass = 'btn btn-outline-secondary';
+        this.houseFullClass = 'btn btn-outline-secondary';
+        this.houseNightClass = 'btn btn-outline-secondary';
+        this.houseDayClass = 'btn btn-outline-secondary';
+    },
     status() {
       swal.fire({
         title: "Request status?",
@@ -163,7 +201,41 @@ export default {
           );
         }
       })
-      
+    },
+    fetchRecord(){
+      var qs = require('qs');
+        axios.get('/records').then(response => {
+          this.resetClasses()
+          switch (response.data.garage) {
+            case 0:
+              this.garageDeactivateClass = 'btn btn-secondary';
+              break;
+            case 1:
+                this.garageActivateClass = 'btn btn-danger';
+                break;
+        
+            default:
+                break;
+          }
+          switch (response.data.house) {
+            case 0:
+                this.houseDeactivateClass = 'btn btn-secondary';
+                break;
+            case 1:
+                this.houseFullClass = 'btn btn-danger';
+                break;
+            case 2:
+                this.houseDayClass = 'btn btn-danger';
+                break;
+            case 3:
+                this.houseNightClass = 'btn btn-danger';
+                break;
+        
+            default:
+                break;
+          }
+          this.status.age = response.data.age;
+        });
     }
   }
 };
