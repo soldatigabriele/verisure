@@ -36,21 +36,28 @@ Route::middleware(['api', 'token'])->group(function () {
 });
 
 Route::get('/responses', function (Request $request) {
-    $responses = \App\Response::latest('id')->get();
-    if ($request->has('excluded_statuses')) {
-        $statuses = explode(',', $request->excluded_statuses);
-        $responses = $responses->filter(function ($response) use ($statuses) {
-            if (in_array('jobs', $statuses) && isset($response->body['job_id'])) {
-                return false;
-            }
-            if (isset($response->body['status'])) {
-                return (!in_array($response->body['status'], $statuses));
-            } else {
-                return !in_array($response->request_type, $statuses);
-            }
-            return true;
-        });
+    $responses = collect();
+    $query = \App\Response::latest('id');
+    // The view expects all the responses. If we have no new responses, return an empty collection
+    if (!$request->has('latest_id') || \App\Response::where('id', '>', $request->latest_id)->count() !== 0){
+        $responses = $query->get();
+        if ($request->has('excluded_statuses')) {
+            $statuses = explode(',', $request->excluded_statuses);
+            $responses = $responses->filter(function ($response) use ($statuses) {
+                if (in_array('jobs', $statuses) && isset($response->body['job_id'])) {
+                    return false;
+                }
+                if (isset($response->body['status'])) {
+                    return (!in_array($response->body['status'], $statuses));
+                } else {
+                    return !in_array($response->request_type, $statuses);
+                }
+                return true;
+            });
+        }
     }
+    // Reset the collection keys
+    $responses = $responses->values();
     return response()->json($responses->paginate($request->per_page ?? 13));
 })->name('responses');
 

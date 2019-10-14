@@ -167,7 +167,7 @@ export default {
   props: ['limit', 'hide', 'home', 'responses_link'],
   data() {
     return {
-      responses: {},
+      responses: [],
       badges: {
         completed: "badge-success",
         working: "badge-light",
@@ -183,25 +183,29 @@ export default {
         page: 1,
         per_page: this.limit || 13,
         excluded_statuses: [],
-      }
+      },
+      latest_id: 1,
     };
   },
   methods: {
     fetchResponses(){
       var qs = require('qs');
-        axios.get('/api/responses', {
+        axios.get('/api/responses?latest_id=' + this.latest_id, {
           params: this.axiosparams,
           'paramsSerializer': function(params) {
             return qs.stringify(params, {
               arrayFormat: 'comma',
               encodeValuesOnly: true
             })
-          },
-
+          }
         }).then(response => {
-          this.responses = response.data.data;
-          this.pagination.lastpage = response.data.last_page;
-          this.axiosparams.per_page = response.data.per_page;
+          // If we got some responses in the data, update all the local responses
+          if (Object.keys(response.data.data).length > 0) {
+            this.responses = response.data.data
+            this.latest_id = response.data.data[0]['id'];
+            this.pagination.lastpage = response.data.last_page;
+            this.axiosparams.per_page = response.data.per_page;
+          }
         });
     },
     formattedDate(date) {
@@ -247,7 +251,7 @@ export default {
     that.fetchResponses()
     setInterval(function(){ 
       that.fetchResponses()
-    }, 2000)
+    }, 5000)
   },
   watch: {
     "axiosparams.page": {
@@ -271,6 +275,7 @@ export default {
     "axiosparams": {
       deep: true,
       handler(newval, oldval) {
+        this.latest_id = 1
         this.fetchResponses()
       }
     }
