@@ -46,9 +46,7 @@
       display: block;
     }
     thead tr {
-      position: absolute;
-      top: -9999px;
-      left: -9999px;
+      display: none;
     }
     tr { border: 1px solid #ccc; }
     td {
@@ -67,11 +65,15 @@
       white-space: nowrap;
       margin-left: -150px;
     }
-    td:nth-of-type(1):before { content: "#"; }
-    td:nth-of-type(2):before { content: "Request"; }
-    td:nth-of-type(3):before { content: "Status"; }
-    td:nth-of-type(4):before { content: "Description";}
-    td:nth-of-type(5):before { content: "Date"; }
+    td.full:nth-of-type(1):before { content: "#"; }
+    td.full:nth-of-type(2):before { content: "Request"; }
+    td.full:nth-of-type(3):before { content: "Status"; }
+    td.full:nth-of-type(4):before { content: "Body";}
+    td.full:nth-of-type(5):before { content: "Date"; }
+
+    td.home:nth-of-type(1):before { content: "#";}
+    td.home:nth-of-type(2):before { content: "Body";}
+    td.home:nth-of-type(3):before { content: "Date"; }
   }
 </style>
 
@@ -124,19 +126,19 @@
           <thead>
             <tr>
               <th class="id_cell">#</th>
-              <th class="request_cell">Request</th>
-              <th class="status_cell">Status</th>
+              <th v-if="!home" class="request_cell">Request</th>
+              <th v-if="!home" class="status_cell">Status</th>
               <th class="boby_cell">Body</th>
               <th class="date_cell">Date</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="response in responses" v-bind:key="response.id">
-              <td class="id_cell">{{ response.id }}</td>
-              <td class="request_cell">{{ response.request_type }}</td>
-              <td class="status_cell">{{ response.status }}</td>
-              <td class="body_cell" v-html="parsedBody(response.body)"></td>
-              <td class="date_cell">{{ longAgo(response.created_at) }} - {{ formattedDate(response.created_at) }}</td>
+              <td v-bind:class="{'home': home}" class="id_cell">{{ response.id }}</td>
+              <td v-if="!home" v-bind:class="{'full': !home}" class="request_cell full">{{ response.request_type }}</td>
+              <td v-if="!home" v-bind:class="{'full': !home}" class="status_cell full">{{ response.status }}</td>
+              <td v-bind:class="{'home': home}" class="body_cell full" v-html="parsedBody(response.body)"></td>
+              <td v-bind:class="{'home': home}" class="date_cell full">{{ longAgo(response.created_at) }} - {{ formattedDate(response.created_at) }}</td>
             </tr>
 
             <nav aria-label="navigation" v-if="!home">
