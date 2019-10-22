@@ -26,6 +26,8 @@
                     <a href="{{route('responses')}}">Responses list</a>
                     <br>
                     <a href="{{route('settings')}}">Settings</a>
+                    <br>
+                    <a href="{{route('magic-logins')}}">Magic Logins</a>
                 </div>
             </div>
         </div>

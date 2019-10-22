@@ -1,8 +1,9 @@
 <?php
 
 use App\User;
-use App\Setting;
 use App\Response;
+use Carbon\Carbon;
+use App\MagicLogin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -56,7 +57,7 @@ Route::middleware('auth')->group(function () {
 
     // Show the latest record
     Route::get('/records', 'RecordsController@get');
-    
+
     // Request the status
     Route::get('/status', 'VerisureController@status');
 
@@ -66,11 +67,44 @@ Route::middleware('auth')->group(function () {
     Route::get('/options', function () {
         return view('settings');
     })->name('settings');
+
+    /**
+     * Magic login routes
+     */
+    Route::get('/magic-logins', function (Request $request) {
+        return view('magic-logins');
+    })->name('magic-logins');
+
+    /**
+     * Magic Tokens routes for Vue component
+     */
+    Route::get('/users', function () {
+        return User::all();
+    });
+    Route::get('/magic-logins/all', function () {
+        return MagicLogin::where('expiration_date', '>', now()->subHours(48))->with('user')->limit(10)->get();
+    });
+
+    Route::post('/magic-logins', function (Request $request) {
+        $user = User::findOrFail($request->user_id);
+        $ml = new MagicLogin;
+        $ml->token = substr(md5(now()), 0, 8);
+        $ml->user()->associate($user);
+        $ml->expiration_date = now()->addMinutes($request->duration);
+        $ml->save();
+
+        return response()->json(['status' => 'ok', 'message' => 'token created', 'token' => $ml]);
+    });
+
+    Route::delete('/magic-logins/{id}', function (Request $request) {
+        MagicLogin::find($request->id)->delete();
+        return response()->json(['status' => 'ok', 'message' => 'token deleted']);
+    });
+
 });
 
-Route::get('/magic-login', function (Request $request) {
-    if (isset($request->auth_token) && $request->auth_token == Setting::where('key', 'auth.token')->first()->value) {
-        Auth::login(User::first(), true);
-    }
+Route::get('/ml/{token}', function (Request $request) {
+    $user = MagicLogin::where('expiration_date', '>', Carbon::now())->where('token', $request->token)->firstOrFail()->user;
+    Auth::login($user);
     return redirect()->route('home');
 })->name('magic-login');
