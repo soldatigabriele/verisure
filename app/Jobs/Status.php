@@ -48,6 +48,12 @@ class Status implements ShouldQueue
         $this->parseResponse($response["message"]);
     }
 
+    /**
+     * Parse the response to a standard format
+     *
+     * @param string $message
+     * @return void
+     */
     protected function parseResponse($message)
     {
         /**

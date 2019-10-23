@@ -11,11 +11,14 @@
 @section('content')
 
 <div class="container">
+    @if(auth()->user()->isAdmin())
     <div class="row">
         <responses-component limit="4" hide="queued,working,jobs,login,logout" home="true" responses_link="{{route('responses')}}"></responses-component>
     </div>
+    @endif
     <div class="row">
-        <actions-component></actions-component>
+        <actions-component auth="{{auth()->user()->isAdmin()}}"></actions-component>
+        @if(auth()->user()->isAdmin())
         <monitor-component></monitor-component>
         <div class="col-md-6">
             <div class="card">
@@ -31,6 +34,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 </div>
 
