@@ -6,7 +6,7 @@
 }
 </style>
 <template>
-  <div class="col-md-6">
+  <div class="col-md-12">
     <div class="card action-card">
       <div class="card-header">Actions</div>
       <div class="card-body">

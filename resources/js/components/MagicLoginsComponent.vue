@@ -197,7 +197,17 @@ export default {
         );
     },
     share(token) {
-      alert(this.url + '/' + token)
+      var dummy = document.createElement("input");
+      document.body.appendChild(dummy);
+      dummy.setAttribute("id", "dummy_id");
+      document.getElementById("dummy_id").value=this.url + '/' + token;
+      dummy.select();
+      document.execCommand("copy");
+      document.body.removeChild(dummy);
+      $.notify("<strong>Link copied to clipboard</strong>", {
+        type: "success",
+        newest_on_top: true
+      });
     },
     parseCron(key){
         let expression = this.settings[key]

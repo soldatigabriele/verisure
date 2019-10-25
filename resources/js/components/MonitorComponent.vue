@@ -13,7 +13,7 @@
 </style>
 
 <template>
-<div class="col-md-6">
+<div class="col-md-12">
     <div class="card">
         <div class="card-header">Monitor</div>
         <div class="card-body">
