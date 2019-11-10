@@ -55,6 +55,8 @@ Route::middleware('auth')->group(function () {
         ]);
     });
 
+    Route::get('/stats', 'StatsController@get');
+
     // Show the latest record
     Route::get('/records', 'RecordsController@get');
 

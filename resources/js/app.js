@@ -24,6 +24,7 @@ Vue.component('actions-component', require('./components/ActionsComponent.vue').
 Vue.component('responses-component', require('./components/ResponsesComponent.vue').default);
 Vue.component('monitor-component', require('./components/MonitorComponent.vue').default);
 Vue.component('magic-logins-component', require('./components/MagicLoginsComponent.vue').default);
+Vue.component('chart-component', require('./components/ChartComponent.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

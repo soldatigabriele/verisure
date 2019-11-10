@@ -25,6 +25,7 @@
             Garage:
             <span v-html="status.garage"></span>
             <br>
+            <chart-component></chart-component>
         </div>
     </div>
 </div>
