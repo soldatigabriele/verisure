@@ -67,13 +67,13 @@ class VerisureController extends BaseController
                 'error' => 'system not supported, try with "/house" or "/garage"',
             ], 400);
         }
-
+        $delay = $request->has('delay') ? $request->delay : 0;
         if ($request->system == "house") {
             $mode = in_array($request->mode, ['house', 'night', 'day']) ? $request->mode : 'house';
-            ActivateHouse::dispatch($mode);
+            ActivateHouse::dispatch($mode)->delay(now()->addMinutes($delay));
         } else {
             // System is garage
-            ActivateAnnex::dispatch();
+            ActivateAnnex::dispatch()->delay(now()->addMinutes($delay));
         }
         return response()->json(['status' => 'accepted'], 202);
     }
@@ -91,10 +91,11 @@ class VerisureController extends BaseController
                 'error' => 'system not supported, try with "/house" or "/garage"',
             ], 400);
         }
+        $delay = $request->has('delay') ? $request->delay : 0;
         if ($request->system == "house") {
-            DeactivateHouse::dispatch();
+            DeactivateHouse::dispatch()->delay(now()->addMinutes($delay));
         } else if ($request->system == "garage") {
-            DeactivateAnnex::dispatch();
+            DeactivateAnnex::dispatch()->delay(now()->addMinutes($delay));
         }
         return response()->json(['status' => 'accepted'], 202);
     }
