@@ -17,6 +17,7 @@
     <div class="row">
         <div class="col-md-6">
             <actions-component auth="{{auth()->user()->isAdmin()}}"></actions-component>
+            @if(auth()->user()->isAdmin())
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">Links</div>
@@ -28,6 +29,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         </div>
         
         <div class="col-md-6">

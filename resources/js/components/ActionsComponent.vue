@@ -12,20 +12,22 @@
       <div class="card-body">
         House <br />
         <button v-bind:class="houseFullClass" @click="activate('house', 'full')">Full - <i class="fas fa-lock"></i></button>
-        <button v-bind:class="houseDayClass" @click="activate('house', 'day')" :disabled="!this.auth">Day - <i class="fas fa-sun"></i></button>
-        <button v-bind:class="houseNightClass" @click="activate('house', 'night')" :disabled="!this.auth">Night - <i class="fas fa-moon"></i></button>
+        <button v-bind:class="houseDayClass" @click="activate('house', 'day')" :hidden="!this.auth">Day - <i class="fas fa-sun"></i></button>
+        <button v-bind:class="houseNightClass" @click="activate('house', 'night')" :hidden="!this.auth">Night - <i class="fas fa-moon"></i></button>
         <button v-bind:class="houseDeactivateClass" @click="deactivate('house')">Off - <i class="fas fa-lock-open"></i></button>
-        <hr />
-        Garage <br />
-        <div class="row">
-          <div class="col-6">
-            <button v-bind:class="garageActivateClass" @click="activate('garage')">On - <i class="fas fa-lock"></i></button>
-            <button v-bind:class="garageDeactivateClass" @click="deactivate('garage')">Off - <i class="fas fa-lock-open"></i></button>
-          </div>
-          <div class="col-6" v-if="this.auth">
-            <button class="btn btn-outline-primary" @click="status()">Status</button>
-            <button class="btn btn-outline-primary" @click="logout()">Logout</button>
-          </div>
+        <div v-if="this.auth">
+          <hr />
+          Garage <br />
+          <div class="row">
+            <div class="col-6">
+              <button v-bind:class="garageActivateClass" @click="activate('garage')">On - <i class="fas fa-lock"></i></button>
+              <button v-bind:class="garageDeactivateClass" @click="deactivate('garage')">Off - <i class="fas fa-lock-open"></i></button>
+            </div>
+            <div class="col-6" v-if="this.auth">
+              <button class="btn btn-outline-primary" @click="status()">Status</button>
+              <button class="btn btn-outline-primary" @click="logout()">Logout</button>
+            </div>
+        </div>
         </div>
       </div>
     </div>
