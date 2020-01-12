@@ -75,6 +75,22 @@
     td.home:nth-of-type(2):before { content: "Body";}
     td.home:nth-of-type(3):before { content: "Date"; }
   }
+
+  #overlay {
+    position:absolute;
+    top:0px;
+    left:0px;
+    right:0px;
+    bottom:0px;
+    background-color:rgba(255, 255, 255, 0.85);
+    z-index:9999;
+    color:#aeaeae;
+    text-align: center;
+  }
+  .spinner-border{
+    position: relative;
+    top: 200px;
+  }
 </style>
 
 <template>
@@ -91,6 +107,13 @@
 
       </div>
       <div class="card-body">
+
+        <div v-if="loading" id="overlay">
+          <div class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+
         <div v-if="!home" class="filters">
 
           <span>Per page</span>
@@ -169,6 +192,7 @@ export default {
   props: ['limit', 'hide', 'home', 'responses_link'],
   data() {
     return {
+      loading: true,
       responses: [],
       badges: {
         completed: "badge-success",
@@ -191,6 +215,7 @@ export default {
   },
   methods: {
     fetchResponses(){
+      this.loading = true
       var qs = require('qs');
         axios.get('/api/responses?latest_id=' + this.latest_id, {
           params: this.axiosparams,
@@ -201,6 +226,7 @@ export default {
             })
           }
         }).then(response => {
+          this.loading = false
           // If we got some responses in the data, update all the local responses
           if (Object.keys(response.data.data).length > 0) {
             this.responses = response.data.data
@@ -251,13 +277,11 @@ export default {
     }
     var that = this
     that.fetchResponses()
-    setInterval(function(){ 
-      that.fetchResponses()
-    }, 5000)
   },
   watch: {
     "axiosparams.page": {
       handler(newval, oldval) {
+        this.loading = true;
         this.pagination.is_first_page = false;
         this.pagination.is_last_page = false;
         if (this.axiosparams.page <= 1) {
@@ -270,6 +294,7 @@ export default {
         axios.get('/api/responses?page=' + this.axiosparams.page, {
           params: this.axiosparams
         }).then(response => {
+          this.loading = false;
           this.responses = response.data.data;
         });
       }
