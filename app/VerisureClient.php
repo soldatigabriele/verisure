@@ -244,6 +244,7 @@ class VerisureClient
         $status = "queued";
         while ($status == "working" || $status == "queued") {
             if ($counter > config('verisure.settings.status_job.max_calls')) {
+                app('log')->error('problem requesting the job status: too many attempts');
                 throw new Exception("Too many attempts");
             }
 

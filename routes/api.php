@@ -40,7 +40,8 @@ Route::get('/responses', function (Request $request) {
     $query = \App\Response::latest('id');
     // The view expects all the responses. If we have no new responses, return an empty collection
     if (!$request->has('latest_id') || \App\Response::where('id', '>', $request->latest_id)->count() !== 0){
-        $responses = $query->get();
+        // TODO we need to pass a parameter to change the limit of requests
+        $responses = $query->limit($request->limit ?? 1000)->get();
         if ($request->has('excluded_statuses')) {
             $statuses = explode(',', $request->excluded_statuses);
             $responses = $responses->filter(function ($response) use ($statuses) {
