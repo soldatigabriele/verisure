@@ -11,7 +11,8 @@ Auth::routes(['register' => false, 'reset' => false]);
 
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
-        $responses = \App\Response::latest('id')->get();
+        // $responses = \App\Response::latest('id')->get();
+        return view('home');
         return view('home')->with(['responses' => $responses]);
     })->name('home');
 
@@ -25,15 +26,6 @@ Route::middleware('auth')->group(function () {
     })->name('request');
 
     Route::get('/responses', function (Request $request) {
-        $responses = \App\Response::latest('id')->get();
-        if ($request->has('excluded_statuses')) {
-            $statuses = explode(',', $request->excluded_statuses);
-            $responses = $responses->filter(function ($response) use ($statuses) {
-                if (isset($response->body['status'])) {
-                    return (!in_array($response->body['status'], $statuses));
-                }
-            });
-        }
         return view('responses');
     })->name('responses');
 
