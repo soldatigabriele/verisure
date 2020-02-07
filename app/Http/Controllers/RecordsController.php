@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Status;
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -27,7 +28,7 @@ class RecordsController extends BaseController
      *
      * @return void
      */
-    public function get()
+    public function get(Request $request)
     {
         $status = Status::firstOrFail();
         $map = [
@@ -36,11 +37,19 @@ class RecordsController extends BaseController
             2 => 'DAY',
             3 => 'NIGHT',
         ];
-        return response()->json([
+        $response = [
             "house" => $status->house,
             "garage" => $status->garage,
-            "message" => "House: " . $map[$status->house] . " Garage: " . $map[$status->garage],
-            "age" => $status->updated_at->diffForHumans(),
-        ]);
+            "age" => $status->updated_at->toIso8601String(),
+        ];
+
+        // Format the response for humans
+        if ($request->format == 'for_humans') {
+            $response = [
+                "message" => "House: " . $map[$status->house] . " Garage: " . $map[$status->garage],
+                "age" => $status->updated_at->diffForHumans(),
+            ];
+        }
+        return response()->json($response);
     }
 }
