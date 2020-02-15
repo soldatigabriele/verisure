@@ -24,7 +24,7 @@ class RecordsControllerTest extends TestCase
         $response = $this->json('get', '/api/records')->assertStatus(200);
         $this->assertEquals(json_decode($response->getContent())->house, 0);
         $this->assertEquals(json_decode($response->getContent())->garage, 1);
-        $this->assertEquals(json_decode($response->getContent())->age, $status->updated_at->toIso8601String());
+        $this->assertEquals(json_decode($response->getContent())->age, $status->updated_at->timestamp);
     }
 
     /**

@@ -40,7 +40,7 @@ class RecordsController extends BaseController
         $response = [
             "house" => $status->house,
             "garage" => $status->garage,
-            "age" => $status->updated_at->toIso8601String(),
+            "age" => $status->updated_at->timestamp,
         ];
 
         // Format the response for humans
