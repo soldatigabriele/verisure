@@ -94,7 +94,6 @@ Route::middleware('auth')->group(function () {
         MagicLogin::find($request->id)->delete();
         return response()->json(['status' => 'ok', 'message' => 'token deleted']);
     });
-
 });
 
 Route::get('/ml/{token}', function (Request $request) {
@@ -102,3 +101,11 @@ Route::get('/ml/{token}', function (Request $request) {
     Auth::login($user);
     return redirect()->route('home');
 })->name('magic-login');
+
+// This endpoint is to test the webhooks from browser/vue
+Route::any('/webhook', function (Request $request) {
+    $payload = is_array($request->payload) ? $request->payload : json_decode($request->payload, true);
+    \App\Jobs\CallWebhook::dispatch($request->url, $payload)
+        ->onQueue("notifications");
+    return response()->json(['status' => 'ok', 'message' => 'notification pushed on the notifications queue']);
+});

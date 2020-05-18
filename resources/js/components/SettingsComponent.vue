@@ -22,23 +22,51 @@
                 <button @click="regenerate('auth_token')" class="btn btn-primary" :disabled="!settings.auth_active">regenerate</button>
             </div>
             </div>
-            Notifications
+            Error Notifications
+          
             <div class="input-group mb-3">
               <div class="input-group-prepend">
                   <div class="input-group-text">
                       <div class="custom-control custom-switch">
-                          <input type="checkbox" @change="updateSetting('notifications_enabled')" v-model="settings.notifications_enabled" class="custom-control-input" id="notifications_enabled">
-                          <label class="custom-control-label" for="notifications_enabled"></label>
+                          <input type="checkbox" @change="updateSetting('notifications_errors_enabled')" v-model="settings.notifications_errors_enabled" class="custom-control-input" id="notifications_errors_enabled">
+                          <label class="custom-control-label" for="notifications_errors_enabled"></label>
                       </div>
                   </div>
               </div>
-              <input type="text" class="form-control" v-model="settings.notifications_channel" :disabled="!settings.notifications_enabled">
+              <input type="text" class="form-control" v-model="settings.notifications_errors_url" :disabled="!settings.notifications_errors_enabled">
               <div class="input-group-append">
-                  <button class="btn btn-primary" @click="updateSetting('notifications_channel')" :disabled="!settings.notifications_enabled">update</button>
+                  <button class="btn btn-primary" @click="testWebhook('notifications_errors_url')">test</button>
+              </div>
+              <div class="input-group-append">
+                <button class="btn btn-primary" @click="updateSetting('notifications_errors_url')" :disabled="!settings.notifications_errors_enabled">update</button>
               </div>
             </div>
             <small class="form-text text-muted">
-                The channel you want to use (IFTTT webhook token)
+              Call the webhook when we receive an unmapped message from Verisure
+            </small>
+            Alarm Status changed Notifications
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                  <div class="input-group-text">
+                      <div class="custom-control custom-switch">
+                          <input type="checkbox" @change="updateSetting('notifications_status__updated_enabled')" v-model="settings.notifications_status__updated_enabled" class="custom-control-input" id="notifications_status__updated_enabled">
+                          <label class="custom-control-label" for="notifications_status__updated_enabled"></label>
+                      </div>
+                  </div>
+              </div>
+              <input type="text" class="form-control" v-model="settings.notifications_status__updated_url" :disabled="!settings.notifications_status__updated_enabled">
+              <div class="input-group-append">
+                <button class="btn btn-primary" @click="testWebhook('notifications_status__updated_url')">test</button>
+              </div>
+              <div class="input-group-append">
+                  <button class="btn btn-primary" @click="updateSetting('notifications_status__updated_url')" :disabled="!settings.notifications_status__updated_enabled">update</button>
+              </div>
+            </div>
+             <small class="form-text text-muted">
+              Call the webhook after a manual request that change the status of the alarm
+            </small>
+            <small class="form-text text-muted">
+                The URL of the webhook you want to call (IFTTT webhook with token, HomeAssistant webhook)
             </small>
 
             Censure Responses
@@ -237,8 +265,10 @@ export default {
       settings: {
         auth_active: undefined,
         auth_token: undefined,
-        notifications_enabled: undefined,
-        notifications_channel: undefined,
+        notifications_errors_enabled: undefined,
+        notifications_errors_url: undefined,
+        notifications_status__updated_enabled: undefined,
+        notifications_status__updated_url: undefined,
         status__job_max__calls: undefined,
         status__job_sleep__between__calls: undefined,
         session_keep__alive: undefined,
@@ -287,6 +317,37 @@ export default {
             .split("+")
             .join("_"),
           value: this.settings[key]
+        })
+        .then(
+          response => {
+            if (response.data.status == "ok") {
+              $.notify("<strong>" + response.data.message + "</strong>", {
+                type: "success",
+                newest_on_top: true
+              });
+              return;
+            }
+            $.notify(response.data.message, {
+              type: "danger",
+              newest_on_top: true
+            });
+          },
+          error => {
+            $.notify("<strong>Error</strong>", {
+              type: "danger",
+              newest_on_top: true
+            });
+          }
+        );
+    },
+    testWebhook(url) {
+      axios
+        .post("/webhook", {
+          url: this.settings[url],
+          payload: {
+            title: "test webhook",
+            message: "test message content"
+          }
         })
         .then(
           response => {

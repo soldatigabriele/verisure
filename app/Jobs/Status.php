@@ -3,10 +3,9 @@
 namespace App\Jobs;
 
 use App\VerisureClient;
-use GuzzleHttp\Psr7\Request;
+use App\Jobs\CallWebhook;
 use Illuminate\Bus\Queueable;
 use App\Status as StatusRecord;
-use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -36,14 +35,12 @@ class Status implements ShouldQueue
      * @param VerisureClient $client The instance of VerisureClient
      * @return void
      */
-    public function handle(VerisureClient $client, GuzzleClient $guzzle)
+    public function handle(VerisureClient $client)
     {
         $response = $client->jobStatus($this->jobId);
-
-        if (config('verisure.settings.notifications.enabled') && $this->notify) {
-            $this->guzzle = $guzzle;
-            $this->sendNotification($response);
-            // TODO Log the response
+        // Send a notification if it's enabled in the settings
+        if (config('verisure.settings.notifications.status_updated.enabled') && $this->notify) {
+            $this->sendNotification(config('verisure.settings.notifications.status_updated.url'), $response);
         }
         $this->parseResponse($response["message"]);
     }
@@ -94,31 +91,30 @@ class Status implements ShouldQueue
             "Due to a technical issue, the request cannot be processed at present. Please contact Verisure Services" => [],
             "There was a problem communicating with the server" => [],
             "We have had problems identifying you, please end session and log in again." => [],
+            "Error 5304. Due to a technical incident we cannot attend to your request. Please, try again in a few minute." => [],
         ];
 
         // Update the Status record
         if (isset($cases[$message])) {
             $status = StatusRecord::first();
             $status->update($cases[$message]);
-            // Update the updated_at field if nothing changed 
+            // Update the updated_at field if nothing changed
             $status->touch();
-        } elseif (!is_test()) {
+        } elseif (config('verisure.settings.notifications.errors.enabled')) {
             app('log')->warning('could not update the status because we got a new unmapped message ("' . $message . '"). Check Jobs/Status@parseResponse()');
-            $this->sendNotification(['status' => 'warning', 'message' => 'undefined message: check the logs for more info']);
+            $this->sendNotification(config('verisure.settings.notifications.error.url'), ['status' => 'warning', 'message' => 'undefined message: check the logs for more info']);
         }
     }
 
     /**
-     * Send a push notification
+     * Send a push notification using Spatie webhook server package
      *
-     * @param array $response
+     * @param string $url
+     * @param array $payload
      * @return void
      */
-    protected function sendNotification(array $response)
+    protected function sendNotification(string $url, array $payload)
     {
-        $url = 'https://maker.ifttt.com/trigger/alarm_status/with/key/' . config('verisure.settings.notifications.channel') . '?value1=' . $response['status'] . ' &value2=' . $response['message'];
-        $notification = new Request("POST", $url);
-        $response = $this->guzzle->send($notification);
-        return json_decode($response->getBody()->getContents(), true);
+        CallWebhook::dispatch($url, $payload)->onQueue("notifications");
     }
 }
