@@ -102,7 +102,7 @@ class Status implements ShouldQueue
             $status->touch();
         } elseif (config('verisure.settings.notifications.errors.enabled')) {
             app('log')->warning('could not update the status because we got a new unmapped message ("' . $message . '"). Check Jobs/Status@parseResponse()');
-            $this->sendNotification(config('verisure.settings.notifications.error.url'), ['status' => 'warning', 'message' => 'undefined message: check the logs for more info']);
+            $this->sendNotification(config('verisure.settings.notifications.errors.url'), ['status' => 'warning', 'message' => 'undefined message: check the logs for more info']);
         }
     }
 
