@@ -13,6 +13,11 @@ class DeactivateHouse implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
+    /**
+     * Should notify in case of success
+     *
+     * @var bool
+     */
     public $notify;
 
     /**
@@ -34,6 +39,7 @@ class DeactivateHouse implements ShouldQueue
     public function handle(VerisureClient $client)
     {
         $jobId = $client->deactivate();
-        event(new StatusCreated($jobId, $this->notify));
+        $parentJob = (new DeactivateHouse($this->notify));
+        event(new StatusCreated($jobId, $parentJob, $this->notify));
     }
 }

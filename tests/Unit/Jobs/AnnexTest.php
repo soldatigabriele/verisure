@@ -33,7 +33,7 @@ class AnnexTest extends TestCase
         // Assert the job to check the status has been dispatched with the correct jobId
         Queue::assertPushedOn('high', Status::class);
         Queue::assertPushed(Status::class, function ($job) use ($jobId) {
-            return $job->jobId === $jobId;
+            return $job->jobId === $jobId && ActivateAnnex::class === get_class($job->parentJob);
         });
     }
 
@@ -56,7 +56,7 @@ class AnnexTest extends TestCase
         // Assert the job to check the status has been dispatched with the correct jobId
         Queue::assertPushedOn('high', Status::class);
         Queue::assertPushed(Status::class, function ($job) use ($jobId) {
-            return $job->jobId === $jobId;
+            return $job->jobId === $jobId && DeactivateAnnex::class === get_class($job->parentJob);
         });
     }
 

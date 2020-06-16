@@ -14,6 +14,11 @@ class RequestStatus implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
+    /**
+     * Should notify in case of success
+     *
+     * @var bool
+     */
     public $notify;
 
     /**
@@ -43,7 +48,8 @@ class RequestStatus implements ShouldQueue
         }
 
         if (isset($jobId)) {
-            event(new StatusCreated($jobId, $this->notify));
+            $parentJob = new RequestStatus;
+            event(new StatusCreated($jobId, $parentJob, $this->notify));
         }
     }
 }

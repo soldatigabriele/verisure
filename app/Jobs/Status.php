@@ -14,19 +14,40 @@ class Status implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
+    /**
+     * The job_id returned by Verisure
+     *
+     * @var string
+     */
     public $jobId;
+
+    /**
+     * The instance of the parent job, so we
+     * can retry the job is something goes wrong server side.
+     *
+     * @var ShouldQueue
+     */
+    public $parentJob;
+
+    /**
+     * Should notify in case of success
+     *
+     * @var bool
+     */
     public $notify;
 
     /**
      * Create a new job instance.
      *
      * @param string $jobId The id of the job to check
-     * @return void
+     * @param ShouldQueue $parentJob The class of the job that created the jobId
+     * @param boolean $notify True if you want to notify after the status is updated
      */
-    public function __construct($jobId = null, $notify = true)
+    public function __construct($jobId, ShouldQueue $parentJob, $notify = true)
     {
         $this->jobId = $jobId;
         $this->notify = $notify;
+        $this->parentJob = $parentJob;
     }
 
     /**
@@ -42,16 +63,17 @@ class Status implements ShouldQueue
         if (config('verisure.settings.notifications.status_updated.enabled') && $this->notify) {
             $this->sendNotification(config('verisure.settings.notifications.status_updated.url'), $response);
         }
-        $this->parseResponse($response["message"]);
+        $this->parseResponse($response["message"], $client);
     }
 
     /**
      * Parse the response to a standard format
      *
      * @param string $message
+     * @param VerisureClient $client The instance of VerisureClient
      * @return void
      */
-    protected function parseResponse($message)
+    protected function parseResponse($message, $client)
     {
         /**
          * Garage:
@@ -64,7 +86,7 @@ class Status implements ShouldQueue
          * DAY    2
          * NIGHT  3
          */
-        $cases = [
+        $success = [
             // Actions
             "Your Secondary Alarm has been activated" => ["garage" => 1],
             "Your Secondary Alarm has been deactivated" => ["garage" => 0],
@@ -82,27 +104,52 @@ class Status implements ShouldQueue
             "Your Alarm has been activated in NIGHT PARTIAL mode." => ["house" => 3, "garage" => 0],
             "Your Alarm is activated in DAY PARTIAL mode and your SECONDARY Alarm" => ["house" => 2, "garage" => 1],
             "Your Alarm is activated in NIGHT PARTIAL mode and the SECONDARY alarm" => ["house" => 3, "garage" => 1],
-
-            // Errors
+        ];
+        // We can't process this request, manual intervention is required
+        $fail = [
             "Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again." => [],
-
+        ];
+        // Server errors: we can retry the job
+        $retry = [
             "Sorry but we are unable to carry out your request. Please try again later" => [],
             "unable to create new native thread" => [],
+            "Invalid session. Please, try again later." => [],
             "Due to a technical issue, the request cannot be processed at present. Please contact Verisure Services" => [],
             "There was a problem communicating with the server" => [],
             "We have had problems identifying you, please end session and log in again." => [],
             "Error 5304. Due to a technical incident we cannot attend to your request. Please, try again in a few minute." => [],
         ];
 
-        // Update the Status record
-        if (isset($cases[$message])) {
+        // If the request was successful, update the Status record
+        if (isset($success[$message])) {
             $status = StatusRecord::first();
-            $status->update($cases[$message]);
+            $status->update($success[$message]);
             // Update the updated_at field if nothing changed
             $status->touch();
-        } elseif (config('verisure.settings.notifications.errors.enabled')) {
+            return;
+        }
+
+        // If the request was failed
+        // We don't want to send a notification, as we could otherwise assume that everything went fine.
+        if (isset($fail[$message])) {
+            // TODO We should set up a new webhook to maybe call via voip or notify in other ways.
+            return;
+        }
+
+        // In case of server error, we can retry the job and hope the problem is solved
+        if (isset($retry[$message])) {
+            // Let's perform a logout and re-push the parent job.
+            $client->logout();
+            // Push the parent job on the queue to retry the job
+            dispatch($this->parentJob);
+            return;
+        }
+
+        // Handle unmapped messages
+        if (config('verisure.settings.notifications.errors.enabled')) {
             app('log')->warning('could not update the status because we got a new unmapped message ("' . $message . '"). Check Jobs/Status@parseResponse()');
             $this->sendNotification(config('verisure.settings.notifications.errors.url'), ['status' => 'warning', 'message' => 'undefined message: check the logs for more info']);
+            return;
         }
     }
 

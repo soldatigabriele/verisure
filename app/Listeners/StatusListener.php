@@ -8,25 +8,16 @@ use App\Events\StatusCreated;
 class StatusListener
 {
     /**
-     * Create the event listener.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
      * Handle the event.
      *
-     * @param  object  $event
+     * @param  StatusCreated  $event
      * @return void
      */
     public function handle(StatusCreated $event)
     {
         // Push on the queue the job to check the status of
-        // the connection and notify the user
-        Status::dispatch($event->jobId, $event->notify)->onQueue('high');
+        // the connection and notify the user.
+        // We pass the parent job to retry it in case of server failure.
+        Status::dispatch($event->jobId, $event->parentJob, $event->notify)->onQueue('high');
     }
 }

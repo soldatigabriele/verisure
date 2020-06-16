@@ -13,6 +13,11 @@ class ActivateAnnex implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
+    /**
+     * Should notify in case of success
+     *
+     * @var bool
+     */
     public $notify;
 
     /**
@@ -34,6 +39,6 @@ class ActivateAnnex implements ShouldQueue
     public function handle(VerisureClient $client)
     {
         $jobId = $client->activateAnnex();
-        event(new StatusCreated($jobId, $this->notify));
+        event(new StatusCreated($jobId, (new ActivateAnnex($this->notify)), $this->notify));
     }
 }

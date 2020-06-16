@@ -13,7 +13,19 @@ class ActivateHouse implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
+    /**
+     * What mode the alarm should activate:
+     * full, day, night
+     *
+     * @var string
+     */
     public $mode;
+
+    /**
+     * Should notify in case of success
+     *
+     * @var bool
+     */
     public $notify;
 
     /**
@@ -37,6 +49,7 @@ class ActivateHouse implements ShouldQueue
     public function handle(VerisureClient $client)
     {
         $jobId = $client->activate($this->mode);
-        event(new StatusCreated($jobId, $this->notify));
+        $parentJob = (new ActivateHouse($this->mode, $this->notify));
+        event(new StatusCreated($jobId, $parentJob, $this->notify));
     }
 }
