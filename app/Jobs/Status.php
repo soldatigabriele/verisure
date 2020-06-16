@@ -140,8 +140,8 @@ class Status implements ShouldQueue
         if (isset($retry[$message])) {
             // Let's perform a logout and re-push the parent job.
             $client->logout();
-            // Push the parent job on the queue to retry the job
-            dispatch($this->parentJob);
+            // Push the parent job on the queue to retry the job in a minute
+            dispatch($this->parentJob)->delay(now()->addMinutes(1));
             return;
         }
 

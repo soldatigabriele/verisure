@@ -8,6 +8,7 @@ use Tests\TestCase;
 use App\Jobs\Status;
 use App\VerisureClient;
 use App\Jobs\CallWebhook;
+use Illuminate\Bus\Queueable;
 use App\Status as StatusRecord;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -163,7 +164,7 @@ class StatusTest extends TestCase
             ->andReturn(['message' => $message, 'status' => 'ok']);
 
         $parentJob = new class implements ShouldQueue
-        {};
+        {use Queueable;};
         $verisureClient->shouldReceive('logout')->times(1);
         (new Status('job-id-test', $parentJob, true))->handle($verisureClient);
         Queue::assertPushed(get_class($parentJob));
