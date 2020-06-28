@@ -207,8 +207,10 @@ export default {
       },
       axiosparams: {
         page: 1,
-        per_page: this.limit || 13,
-        excluded_statuses: [],
+        per_page: this.limit || 30,
+        excluded_statuses: [
+          "working", "queued", "login", "logout", "jobs"
+        ],
       },
       latest_id: 1,
     };

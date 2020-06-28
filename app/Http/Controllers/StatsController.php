@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Record;
-use App\Response;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,10 +10,10 @@ use Illuminate\Routing\Controller as BaseController;
 
 class StatsController extends BaseController
 {
-
     /**
      * Undocumented function
      *
+     * @param Request $request
      * @return void
      */
     public function get(Request $request)
@@ -22,7 +21,7 @@ class StatsController extends BaseController
         $records = Record::orderBy('date', 'desc')
             ->selectRaw("count(id) as count, body, DATE_FORMAT(created_at, '%y-%m-%d') as date")
             ->where('created_at', '>', Carbon::tomorrow()->subDays($request->days ?? 31))
-            ->groupBy(\DB::raw("body, DATE_FORMAT(created_at, '%y-%m-%d')"))
+            ->groupBy(DB::raw("body, DATE_FORMAT(created_at, '%y-%m-%d')"))
             ->get();
 
         $result = [];

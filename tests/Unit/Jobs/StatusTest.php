@@ -8,8 +8,11 @@ use Tests\TestCase;
 use App\Jobs\Status;
 use App\VerisureClient;
 use App\Jobs\CallWebhook;
+use Illuminate\Support\Str;
+use TiMacDonald\Log\LogFake;
 use Illuminate\Bus\Queueable;
 use App\Status as StatusRecord;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -25,12 +28,17 @@ class StatusTest extends TestCase
     {
         parent::setUp();
         $this->parentJob = new class implements ShouldQueue
-        {};
+        {
+            use Queueable;
+            public $retriesCounter = 0;
+            public $maxRetries = 1;
+        };
         Queue::fake();
+        Log::swap(new LogFake);
     }
 
     /**
-     * Test Status job
+     * Test Status job Notification is sent if the status is success
      *
      * @return void
      */
@@ -42,7 +50,7 @@ class StatusTest extends TestCase
         ]);
 
         $verisureClient = Mockery::mock(VerisureClient::class);
-        $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => $message = 'test-' . time(), 'status' => 'ok']);
+        $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => $message = 'Your Secondary Alarm has been activated', 'status' => 'ok']);
         (new Status('job-id-test', $this->parentJob, true))->handle($verisureClient);
 
         // Check that the job to call the webhook is pushed
@@ -55,11 +63,45 @@ class StatusTest extends TestCase
     }
 
     /**
-     * Test notification can be disabled
+     * Test Status job Notification is not sent if the status is failed or retry
      *
      * @return void
      */
-    public function testNotificationDisabled()
+    public function testStatusJobNotificationIsNotSent()
+    {
+        config()->set([
+            'verisure.settings.notifications.status_updated.enabled' => true,
+            'verisure.settings.notifications.status_updated.url' => $url = "http://localhost",
+        ]);
+
+        $messages = [
+            "Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again.",
+            "Sorry but we are unable to carry out your request. Please try again later",
+        ];
+
+        foreach ($messages as $message) {
+
+            $verisureClient = Mockery::mock(VerisureClient::class);
+            $verisureClient->shouldReceive('logout')
+                ->shouldReceive('jobStatus')
+                ->with('job-id-test')->once()
+                ->andReturn(['message' => $message, 'status' => 'ok']);
+            (new Status('job-id-test', $this->parentJob, true))->handle($verisureClient);
+        }
+
+        // Check that the job to call the webhook is pushed
+        Queue::assertNotPushed(CallWebhook::class, function (CallWebhook $job) use ($url, $message) {
+            $this->assertEquals($url, $job->webhookUrl);
+            return true;
+        });
+    }
+
+    /**
+     * Test log notification when no message is matched
+     *
+     * @return void
+     */
+    public function testNotificationWhenMessageNotMatched()
     {
         config()->set(['verisure.settings.notifications.enabled' => false]);
 
@@ -69,6 +111,10 @@ class StatusTest extends TestCase
 
         // We don't expect the notification to be triggered
         Queue::assertNotPushed(CallWebhook::class);
+
+        Log::assertLogged('error', function ($message) {
+            return Str::contains($message, 'could not update the status because we got a new unmapped message');
+        });
     }
 
     /**
@@ -81,7 +127,7 @@ class StatusTest extends TestCase
         config()->set(['verisure.settings.notifications.enabled' => true]);
 
         $verisureClient = Mockery::mock(VerisureClient::class);
-        $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => 'test', 'status' => 'ok']);
+        $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => 'Your Secondary Alarm has been activated', 'status' => 'ok']);
         // We set the $notify to false, so we don't expect the webhook to be called
         (new Status('job-id-test', $this->parentJob, false))->handle($verisureClient);
 
@@ -138,11 +184,14 @@ class StatusTest extends TestCase
     public function testRequestFailed()
     {
         $verisureClient = Mockery::mock(VerisureClient::class);
-        $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => 'Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again.', 'status' => 'ok']);
+        $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => $message = 'Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again.', 'status' => 'ok']);
         (new Status('job-id-test', $this->parentJob, false))->handle($verisureClient);
 
         $this->assertEquals(0, StatusRecord::first()->garage);
         $this->assertEquals(0, StatusRecord::first()->house);
+        Log::assertLogged('error', function ($msg) use ($message) {
+            return Str::contains($msg, 'request failed: ' . $message);
+        });
     }
 
     /**
@@ -150,7 +199,7 @@ class StatusTest extends TestCase
      *
      * @return void
      */
-    public function testRetryFailedRequest()
+    public function testRetryServerErrorRequest()
     {
         config()->set([
             'verisure.settings.notifications.status_updated.enabled' => true,
@@ -163,11 +212,38 @@ class StatusTest extends TestCase
             ->with('job-id-test')->once()
             ->andReturn(['message' => $message, 'status' => 'ok']);
 
-        $parentJob = new class implements ShouldQueue
-        {use Queueable;};
         $verisureClient->shouldReceive('logout')->times(1);
-        (new Status('job-id-test', $parentJob, true))->handle($verisureClient);
-        Queue::assertPushed(get_class($parentJob));
+        (new Status('job-id-test', $this->parentJob, true))->handle($verisureClient);
+        Queue::assertPushed(get_class($this->parentJob));
+    }
+
+    /**
+     * Test the request failed for server problems, we want to retry up to the max tries.
+     *
+     * @return void
+     */
+    public function testRetryServerErrorRequestMaxRetryReached()
+    {
+        config()->set([
+            'verisure.settings.notifications.status_updated.enabled' => true,
+            'verisure.settings.notifications.status_updated.url' => "http://localhost",
+        ]);
+
+        $verisureClient = Mockery::mock(VerisureClient::class);
+        $message = "Sorry but we are unable to carry out your request. Please try again later";
+        $verisureClient->shouldReceive('jobStatus')
+            ->with('job-id-test')->once()
+            ->andReturn(['message' => $message, 'status' => 'ok']);
+
+        $verisureClient->shouldReceive('logout')->times(1);
+        // Set the max retries to 0, so we don't push the job again.
+        $this->parentJob->maxRetries = 0;
+        (new Status('job-id-test', $this->parentJob, true))->handle($verisureClient);
+        Queue::assertNotPushed(get_class($this->parentJob));
+
+        Log::assertLogged('error', function ($message) {
+            return Str::contains($message, 'reached max number of retries for job:');
+        });
     }
 
     /**

@@ -50,7 +50,7 @@ class VerisureController extends BaseController
      */
     public function status()
     {
-        RequestStatus::dispatch();
+        RequestStatus::dispatch(true);
         return response()->json(["stauts" => "accepted"], 202);
     }
 

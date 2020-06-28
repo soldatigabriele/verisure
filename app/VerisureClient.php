@@ -193,7 +193,7 @@ class VerisureClient
      *
      * @return $this
      */
-    public function status()
+    public function status(): string
     {
         return $this->request('status request', 'panel/status');
     }

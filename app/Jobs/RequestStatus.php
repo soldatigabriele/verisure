@@ -22,13 +22,32 @@ class RequestStatus implements ShouldQueue
     public $notify;
 
     /**
+     * The retry counter keeps track of how
+     * many times a job has been retried
+     *
+     * @var integer
+     */
+    public $retriesCounter = 1;
+
+    /**
+     * The max retry indicates how many retries
+     * we want to do before giving up on the job.
+     *
+     * @var integer
+     */
+    public $maxRetries = 2;
+
+    /**
      * Create a new job instance.
      *
+     * @param bool $notify
+     * @param int $retriesCounter
      * @return void
      */
-    public function __construct(bool $notify = false)
+    public function __construct(bool $notify = false, int $retriesCounter = 1)
     {
         $this->notify = $notify;
+        $this->retriesCounter = $retriesCounter;
     }
 
     /**
@@ -48,7 +67,7 @@ class RequestStatus implements ShouldQueue
         }
 
         if (isset($jobId)) {
-            $parentJob = new RequestStatus;
+            $parentJob = new RequestStatus(false, $this->retriesCounter + 1);
             event(new StatusCreated($jobId, $parentJob, $this->notify));
         }
     }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "3513743649b179f6d3cf4f10bc48869a",
+    "content-hash": "71df008471ec4823faa70f3b8d1e8d1b",
     "packages": [
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -835,6 +835,7 @@
                     "email": "jakub.onderka@gmail.com"
                 }
             ],
+            "abandoned": "php-parallel-lint/php-console-color",
             "time": "2018-09-29T17:23:10+00:00"
         },
         {
@@ -881,6 +882,7 @@
                 }
             ],
             "description": "Highlight PHP code in terminal",
+            "abandoned": "php-parallel-lint/php-console-highlighter",
             "time": "2018-09-29T18:48:56+00:00"
         },
         {
@@ -5096,6 +5098,55 @@
             ],
             "description": "A small library for converting tokenized PHP source code into XML and potentially other formats",
             "time": "2019-06-13T22:48:21+00:00"
+        },
+        {
+            "name": "timacdonald/log-fake",
+            "version": "1.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/timacdonald/log-fake.git",
+                "reference": "fe713c13409a89ce78c07f1a4439b11a349055fa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/timacdonald/log-fake/zipball/fe713c13409a89ce78c07f1a4439b11a349055fa",
+                "reference": "fe713c13409a89ce78c07f1a4439b11a349055fa",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/config": "~5.6|^6.0|^7.0",
+                "illuminate/container": "~5.6|^6.0|^7.0",
+                "illuminate/support": "~5.6|^6.0|^7.0",
+                "php": "^7.1.3",
+                "phpunit/phpunit": "^7.0|^8.0|^9.0",
+                "psr/log": "^1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "TiMacDonald\\Log\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Tim MacDonald",
+                    "email": "hello@timacdonald.me",
+                    "homepage": "https://timacdonald.me"
+                }
+            ],
+            "description": "A drop in fake logger for testing with the Laravel framework.",
+            "keywords": [
+                "fake",
+                "laravel",
+                "log",
+                "logger",
+                "testing"
+            ],
+            "time": "2020-03-04T23:32:12+00:00"
         },
         {
             "name": "webmozart/assert",

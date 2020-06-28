@@ -59,22 +59,19 @@ class Status implements ShouldQueue
     public function handle(VerisureClient $client)
     {
         $response = $client->jobStatus($this->jobId);
-        // Send a notification if it's enabled in the settings
-        if (config('verisure.settings.notifications.status_updated.enabled') && $this->notify) {
-            $this->sendNotification(config('verisure.settings.notifications.status_updated.url'), $response);
-        }
-        $this->parseResponse($response["message"], $client);
+        $this->parseResponse($response, $client);
     }
 
     /**
      * Parse the response to a standard format
      *
-     * @param string $message
+     * @param array $response
      * @param VerisureClient $client The instance of VerisureClient
      * @return void
      */
-    protected function parseResponse($message, $client)
+    protected function parseResponse($response, $client)
     {
+        $message = $response["message"];
         /**
          * Garage:
          * OFF    0
@@ -122,6 +119,11 @@ class Status implements ShouldQueue
 
         // If the request was successful, update the Status record
         if (isset($success[$message])) {
+            // Send a notification if it's enabled in the settings
+            if ($this->notify && config('verisure.settings.notifications.status_updated.enabled')) {
+                $this->sendNotification(config('verisure.settings.notifications.status_updated.url'), $response);
+            }
+
             $status = StatusRecord::first();
             $status->update($success[$message]);
             // Update the updated_at field if nothing changed
@@ -130,9 +132,11 @@ class Status implements ShouldQueue
         }
 
         // If the request was failed
-        // We don't want to send a notification, as we could otherwise assume that everything went fine.
         if (isset($fail[$message])) {
-            // TODO We should set up a new webhook to maybe call via voip or notify in other ways.
+            app('log')->error('request failed: ' . $message);
+            if ($this->notify && config('verisure.settings.notifications.errors.enabled')) {
+                $this->sendNotification(config('verisure.settings.notifications.errors.url'), $response);
+            }
             return;
         }
 
@@ -140,17 +144,23 @@ class Status implements ShouldQueue
         if (isset($retry[$message])) {
             // Let's perform a logout and re-push the parent job.
             $client->logout();
-            // Push the parent job on the queue to retry the job in a minute
-            dispatch($this->parentJob)->delay(now()->addMinutes(1));
+            // Push the parent job on the queue to retry the job in a minute.
+            if ($this->parentJob->retriesCounter < $this->parentJob->maxRetries) {
+                dispatch($this->parentJob)->delay(now()->addMinutes(1));
+                return;
+            }
+
+            // We want to abort the retry after N many retries.
+            app('log')->error('reached max number of retries for job: ' . get_class($this->parentJob));
+            if ($this->notify && config('verisure.settings.notifications.errors.enabled')) {
+                // Abort the job and notify myself
+                $this->sendNotification(config('verisure.settings.notifications.errors.url'), ['status' => 'error', 'message' => 'reached max number of retries for job: ' . get_class($this->parentJob)]);
+            }
             return;
         }
 
         // Handle unmapped messages
-        if (config('verisure.settings.notifications.errors.enabled')) {
-            app('log')->warning('could not update the status because we got a new unmapped message ("' . $message . '"). Check Jobs/Status@parseResponse()');
-            $this->sendNotification(config('verisure.settings.notifications.errors.url'), ['status' => 'warning', 'message' => 'undefined message: check the logs for more info']);
-            return;
-        }
+        app('log')->error('could not update the status because we got a new unmapped message ("' . $message . '"). Check Jobs/Status@parseResponse()');
     }
 
     /**
