@@ -91,6 +91,52 @@
     position: relative;
     top: 200px;
   }
+
+  .ck-button {
+      margin:4px;
+      background-color:#38c172;
+      color:#fff;
+      border-radius:4px;
+      border:1px solid #D0D0D0;
+      overflow:auto;
+      float:left;
+  }
+
+  .ck-button:hover {
+      background:gray;
+  }
+
+  .ck-button label {
+      float:left;
+      width:5.5em;
+  }
+
+  .ck-button label span {
+      text-align:center;
+      padding:3px 0px 3px 0px;
+      display:block;
+  }
+
+  .ck-button label input {
+      display:none;
+  }
+
+  .ck-button input:checked + span {
+      background-color:#EFEFEF;
+      color: black;
+  }
+
+  label {
+    display: inline-block;
+    margin-bottom: 0.0rem;
+  }
+
+  .filters-label {
+    float: left;
+    position: relative;
+    top: 5px;
+    margin-right: 10px;
+  }
 </style>
 
 <template>
@@ -116,33 +162,71 @@
 
         <div v-if="!home" class="filters">
 
-          <span>Per page</span>
-          <select v-model="axiosparams.per_page">
-            <option disabled>13</option>
-            <option>10</option>
-            <option>20</option>
-            <option>30</option>
-            <option>50</option>
-            <option>100</option>
-          </select>
+          <div>
 
-          Hide statuses:
-          <input type="checkbox" id="working" value="working" v-model="axiosparams.excluded_statuses">
-          <label for="working">working</label>
-          <input type="checkbox" id="queued" value="queued" v-model="axiosparams.excluded_statuses">
-          <label for="queued">queued</label>
-          <input type="checkbox" id="completed" value="completed" v-model="axiosparams.excluded_statuses">
-          <label for="completed">completed</label>
-          <input type="checkbox" id="failed" value="failed" v-model="axiosparams.excluded_statuses">
-          <label for="failed">failed</label>
+            <span>Per page</span>
+            <select v-model="axiosparams.per_page">
+              <option disabled>13</option>
+              <option>10</option>
+              <option>20</option>
+              <option>30</option>
+              <option>50</option>
+              <option>100</option>
+            </select>
           
-          <input type="checkbox" id="jobs" value="jobs" v-model="axiosparams.excluded_statuses">
-          <label for="jobs">jobs</label>
+            <div class="filters-label">Filters:</div>
 
-          <input type="checkbox" id="login" value="login" v-model="axiosparams.excluded_statuses">
-          <label for="login">login</label>
-          <input type="checkbox" id="logout" value="logout" v-model="axiosparams.excluded_statuses">
-          <label for="logout">logout</label>
+            <div class="ck-button">
+              <label for="working">
+                <input type="checkbox" id="working" value="working" v-model="axiosparams.excluded_statuses">
+                <span>working</span>
+              </label>
+            </div>
+
+            <div class="ck-button">
+              <label for="queued">
+                <input type="checkbox" id="queued" value="queued" v-model="axiosparams.excluded_statuses">
+                <span>queued</span>
+              </label>
+            </div>
+
+            <div class="ck-button">
+              <label for="completed">
+                <input type="checkbox" id="completed" value="completed" v-model="axiosparams.excluded_statuses">
+                <span>completed</span>
+              </label>
+            </div>
+
+            <div class="ck-button">
+              <label for="failed">
+                <input type="checkbox" id="failed" value="failed" v-model="axiosparams.excluded_statuses">
+                <span>failed</span>
+              </label>
+            </div>
+
+            <div class="ck-button">
+              <label for="jobs">
+                <input type="checkbox" id="jobs" value="jobs" v-model="axiosparams.excluded_statuses">
+                <span>jobs</span>
+              </label>
+            </div>
+
+            <div class="ck-button">
+              <label for="login">
+                <input type="checkbox" id="login" value="login" v-model="axiosparams.excluded_statuses">
+                <span>login</span>
+              </label>
+            </div>
+
+            <div class="ck-button">
+              <label for="logout">
+                <input type="checkbox" id="logout" value="logout" v-model="axiosparams.excluded_statuses">
+                <span>logout</span>
+              </label>
+            </div>
+
+          </div>
+
         </div>
 
         <table class="table">

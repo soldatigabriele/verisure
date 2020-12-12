@@ -102,7 +102,7 @@ export default {
   },
   computed: {
     formattedAge: function() {
-      return moment(this.status.age).fromNow();
+      return moment.unix(this.status.age).fromNow();
     }
   },
   mounted() {

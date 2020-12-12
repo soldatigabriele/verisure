@@ -6,6 +6,7 @@ use Exception;
 use App\VerisureClient;
 use App\Events\StatusCreated;
 use Illuminate\Bus\Queueable;
+use App\Exceptions\RetryException;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -63,7 +64,7 @@ class RequestStatus implements ShouldQueue
         } catch (Exception $e) {
             $client->logout();
             $client->login();
-            throw new Exception("Request failed, logging in and trying again");
+            throw new RetryException("Request failed, logging in and trying again");
         }
 
         if (isset($jobId)) {

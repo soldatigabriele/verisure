@@ -5,7 +5,6 @@ namespace Tests\Unit\Jobs;
 use Mockery;
 use Tests\TestCase;
 use App\Jobs\Status;
-use App\Jobs\Activate;
 use App\VerisureClient;
 use App\Jobs\ActivateAnnex;
 use Illuminate\Support\Str;
