@@ -90,7 +90,7 @@ class Status implements ShouldQueue
             "Your Alarm has been deactivated" => ["house" => 0],
             "All of your Alarm's devices have been activated" => ["house" => 1],
             "Your Alarm has been activated in Day Partial mode" => ["house" => 2],
-            "Your Alarm has been activated in Night Partial mode." => ["house" => 3],
+            "Your Alarm has been activated in Night Partial mode" => ["house" => 3],
 
             // Statuses returned by the status request
             "Your Alarm is activated" => ["house" => 1, "garage" => 0],
@@ -99,7 +99,7 @@ class Status implements ShouldQueue
             "Your Alarm is activated and your Secondary Alarm" => ["house" => 1, "garage" => 1],
             "Your main Alarm and Secondary Alarm are activated" => ["house" => 1, "garage" => 1],
             "Your Alarm has been activated in Day Partial mode." => ["house" => 2, "garage" => 0],
-            "Your Alarm has been activated in Night Partial mode." => ["house" => 3, "garage" => 0],
+            "Your Alarm has been activated in Night Partial mode" => ["house" => 3, "garage" => 0],
             "Your Alarm is activated in Day Partial mode and your Secondary Alarm is activated" => ["house" => 2, "garage" => 1],
             "Your Alarm is activated in Night Partial mode and your Secondary Alarm is activated" => ["house" => 3, "garage" => 1],
         ];
