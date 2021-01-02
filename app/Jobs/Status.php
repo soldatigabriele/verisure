@@ -15,6 +15,62 @@ class Status implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable;
 
     /**
+     * List of messages we can process.
+     *
+     * Garage:
+     * OFF    0
+     * ON     1
+     *
+     * House:
+     * OFF    0
+     * FULL   1
+     * DAY    2
+     * NIGHT  3
+     */
+    const SUCCESS = [
+        // Actions that return the status on completion
+        "Your Secondary Alarm has been activated" => ["garage" => 1],
+        "Your Secondary Alarm has been deactivated" => ["garage" => 0],
+        "Your Alarm has been deactivated" => ["house" => 0],
+        "All of your Alarm's devices have been activated" => ["house" => 1],
+        "Your Alarm has been activated in Day Partial mode" => ["house" => 2],
+        "Your Alarm has been activated in Night Partial mode" => ["house" => 3],
+
+        // Statuses returned by the status request
+        "Your Alarm is activated" => ["house" => 1, "garage" => 0],
+        "Your Alarm is deactivated" => ["house" => 0, "garage" => 0],
+        "Your Secondary Alarm is activated" => ["house" => 0, "garage" => 1],
+        "Your Alarm is activated and your Secondary Alarm" => ["house" => 1, "garage" => 1],
+        "Your main Alarm and Secondary Alarm are activated" => ["house" => 1, "garage" => 1],
+        "Your Alarm has been activated in Day Partial mode." => ["house" => 2, "garage" => 0],
+        "Your Alarm has been activated in Night Partial mode" => ["house" => 3, "garage" => 0],
+        "Your Alarm is activated in Day Partial mode and your Secondary Alarm is activated" => ["house" => 2, "garage" => 1],
+        "Your Alarm is activated in Night Partial mode and your Secondary Alarm is activated" => ["house" => 3, "garage" => 1],
+    ];
+
+    /**
+     * List of messages we can't process: manual intervention is required
+     */
+    const FAIL = [
+        "Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again." => [],
+        "Unable to connect the Alarm because is already connected in another mode." => [],
+    ];
+
+    /**
+     * Server errors: we can retry the job
+     */
+    const RETRY = [
+        "We have a problem right now, try later" => [],
+        "Sorry but we are unable to carry out your request. Please try again later" => [],
+        "unable to create new native thread" => [],
+        "Invalid session. Please, try again later." => [],
+        "Due to a technical issue, the request cannot be processed at present. Please contact Verisure Services" => [],
+        "There was a problem communicating with the server" => [],
+        "We have had problems identifying you, please end session and log in again." => [],
+        "Error 5304. Due to a technical incident we cannot attend to your request. Please, try again in a few minute." => [],
+    ];
+
+    /**
      * The job_id returned by Verisure
      *
      * @var string
@@ -72,70 +128,23 @@ class Status implements ShouldQueue
     protected function parseResponse($response, $client)
     {
         $message = $response["message"];
-        /**
-         * Garage:
-         * OFF    0
-         * ON     1
-         *
-         * House:
-         * OFF    0
-         * FULL   1
-         * DAY    2
-         * NIGHT  3
-         */
-        $success = [
-            // Actions that return the status on completion
-            "Your Secondary Alarm has been activated" => ["garage" => 1],
-            "Your Secondary Alarm has been deactivated" => ["garage" => 0],
-            "Your Alarm has been deactivated" => ["house" => 0],
-            "All of your Alarm's devices have been activated" => ["house" => 1],
-            "Your Alarm has been activated in Day Partial mode" => ["house" => 2],
-            "Your Alarm has been activated in Night Partial mode" => ["house" => 3],
-
-            // Statuses returned by the status request
-            "Your Alarm is activated" => ["house" => 1, "garage" => 0],
-            "Your Alarm is deactivated" => ["house" => 0, "garage" => 0],
-            "Your Secondary Alarm is activated" => ["house" => 0, "garage" => 1],
-            "Your Alarm is activated and your Secondary Alarm" => ["house" => 1, "garage" => 1],
-            "Your main Alarm and Secondary Alarm are activated" => ["house" => 1, "garage" => 1],
-            "Your Alarm has been activated in Day Partial mode." => ["house" => 2, "garage" => 0],
-            "Your Alarm has been activated in Night Partial mode" => ["house" => 3, "garage" => 0],
-            "Your Alarm is activated in Day Partial mode and your Secondary Alarm is activated" => ["house" => 2, "garage" => 1],
-            "Your Alarm is activated in Night Partial mode and your Secondary Alarm is activated" => ["house" => 3, "garage" => 1],
-        ];
-        // We can't process this request, manual intervention is required
-        $fail = [
-            "Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again." => [],
-            "Unable to connect the Alarm because is already connected in another mode." => [],
-        ];
-        // Server errors: we can retry the job
-        $retry = [
-            "We have a problem right now, try later" => [],
-            "Sorry but we are unable to carry out your request. Please try again later" => [],
-            "unable to create new native thread" => [],
-            "Invalid session. Please, try again later." => [],
-            "Due to a technical issue, the request cannot be processed at present. Please contact Verisure Services" => [],
-            "There was a problem communicating with the server" => [],
-            "We have had problems identifying you, please end session and log in again." => [],
-            "Error 5304. Due to a technical incident we cannot attend to your request. Please, try again in a few minute." => [],
-        ];
 
         // If the request was successful, update the Status record
-        if (isset($success[$message])) {
+        if (isset(self::SUCCESS[$message])) {
             // Send a notification if it's enabled in the settings
             if ($this->notify && config('verisure.settings.notifications.status_updated.enabled')) {
                 $this->sendNotification(config('verisure.settings.notifications.status_updated.url'), $response);
             }
 
             $status = StatusRecord::first();
-            $status->update($success[$message]);
+            $status->update(self::SUCCESS[$message]);
             // Update the updated_at field if nothing changed
             $status->touch();
             return;
         }
 
         // If the request was failed
-        if (isset($fail[$message])) {
+        if (isset(self::FAIL[$message])) {
             app('log')->error('request failed: ' . $message);
             if ($this->notify && config('verisure.settings.notifications.errors.enabled')) {
                 $this->sendNotification(config('verisure.settings.notifications.errors.url'), $response);
@@ -144,7 +153,7 @@ class Status implements ShouldQueue
         }
 
         // In case of server error, we can retry the job and hope the problem is solved
-        if (isset($retry[$message])) {
+        if (isset(self::RETRY[$message])) {
             // Let's perform a logout and re-push the parent job.
             $client->logout();
             // Push the parent job on the queue to retry the job in a minute.
