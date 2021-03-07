@@ -65,6 +65,7 @@ class Status implements ShouldQueue
         "unable to create new native thread" => [],
         "Invalid session. Please, try again later." => [],
         "Due to a technical issue, the request cannot be processed at present. Please contact Verisure Services" => [],
+        "Due to a technical issue, the request cannot be processed at present. Please contact Customer Services" => [],
         "There was a problem communicating with the server" => [],
         "We have had problems identifying you, please end session and log in again." => [],
         "Error 5304. Due to a technical incident we cannot attend to your request. Please, try again in a few minute." => [],
