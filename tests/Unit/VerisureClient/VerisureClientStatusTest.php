@@ -37,7 +37,7 @@ class VerisureClientStatusTest extends TestCase
     public function testSessionUpdated()
     {
         // Set the test time now() to the session time, so we can create a cookie that will expire 20 minutes after
-        Carbon::setTestNow(Carbon::parse('Thu, 04-Jul-2019 20:00:00 GMT'));
+        Carbon::setTestNow(Carbon::parse('Thu, 04-Jul-2019 21:00:00 GMT'));
         $session = $this->createSession();
 
         // This session cookie will expire 40 minutes from now, we want to update the one we have in the DB
