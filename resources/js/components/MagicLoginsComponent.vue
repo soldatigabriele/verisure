@@ -108,7 +108,6 @@
 <script>
 import moment from "moment";
 import _ from "lodash";
-import notify from "bootstrap-notify";
 import parser from "cron-parser";
 
 export default {

@@ -63,6 +63,31 @@ class StatusTest extends TestCase
     }
 
     /**
+     * Test Status job Notification does not check upper/lower case
+     *
+     * @return void
+     */
+    public function testStatusJobMessageUpperLowerCase()
+    {
+        config()->set([
+            'verisure.settings.notifications.status_updated.enabled' => true,
+            'verisure.settings.notifications.status_updated.url' => $url = "http://localhost",
+        ]);
+
+        $verisureClient = Mockery::mock(VerisureClient::class);
+        $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => $message = 'YoUr SECONDary alArm has been acTiVateD', 'status' => 'ok']);
+        (new Status('job-id-test', $this->parentJob, true))->handle($verisureClient);
+
+        // Check that the job to call the webhook is pushed
+        Queue::assertPushed(CallWebhook::class, function (CallWebhook $job) use ($url, $message) {
+            $this->assertEquals($url, $job->webhookUrl);
+            // The payload contains the message from Verisure server
+            $this->assertContains($message, $job->payload);
+            return true;
+        });
+    }
+
+    /**
      * Test Status job Notification is not sent if the status is failed or retry
      *
      * @return void
@@ -184,7 +209,7 @@ class StatusTest extends TestCase
     public function testRequestFailed()
     {
         $verisureClient = Mockery::mock(VerisureClient::class);
-        $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => $message = 'Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again.', 'status' => 'ok']);
+        $verisureClient->shouldReceive('jobStatus')->with('job-id-test')->once()->andReturn(['message' => $message = 'unable to connect the alarm. one zone is open, check your windows and/or doors and try again.', 'status' => 'ok']);
         (new Status('job-id-test', $this->parentJob, false))->handle($verisureClient);
 
         $this->assertEquals(0, StatusRecord::first()->garage);

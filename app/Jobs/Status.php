@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\VerisureClient;
 use App\Jobs\CallWebhook;
+use Illuminate\Support\Str;
 use Illuminate\Bus\Queueable;
 use App\Status as StatusRecord;
 use Illuminate\Queue\InteractsWithQueue;
@@ -29,47 +30,46 @@ class Status implements ShouldQueue
      */
     const SUCCESS = [
         // Actions that return the status on completion
-        "Your Secondary Alarm has been activated" => ["garage" => 1],
-        "Your Secondary Alarm has been deactivated" => ["garage" => 0],
-        "Your Alarm has been deactivated" => ["house" => 0],
-        "All of your Alarm's devices have been activated" => ["house" => 1],
-        "Your Alarm has been activated in Day Partial mode" => ["house" => 2],
-        "Your Alarm has been activated in Night Partial mode" => ["house" => 3],
+        "your secondary alarm has been activated" => ["garage" => 1],
+        "your secondary alarm has been deactivated" => ["garage" => 0],
+        "your alarm has been deactivated" => ["house" => 0],
+        "all of your alarm's devices have been activated" => ["house" => 1],
+        "your alarm has been activated in day partial mode" => ["house" => 2],
 
         // Statuses returned by the status request
-        "Your Alarm is activated" => ["house" => 1, "garage" => 0],
-        "Your Alarm is deactivated" => ["house" => 0, "garage" => 0],
-        "Your Secondary Alarm is activated" => ["house" => 0, "garage" => 1],
-        "Your Alarm is activated and your Secondary Alarm" => ["house" => 1, "garage" => 1],
-        "Your main Alarm and Secondary Alarm are activated" => ["house" => 1, "garage" => 1],
-        "Your Alarm has been activated in Day Partial mode." => ["house" => 2, "garage" => 0],
-        "Your Alarm has been activated in Night Partial mode" => ["house" => 3, "garage" => 0],
-        "Your Alarm is activated in Day Partial mode and your Secondary Alarm is activated" => ["house" => 2, "garage" => 1],
-        "Your Alarm is activated in Night Partial mode and your Secondary Alarm is activated" => ["house" => 3, "garage" => 1],
+        "your alarm is activated" => ["house" => 1, "garage" => 0],
+        "your alarm is deactivated" => ["house" => 0, "garage" => 0],
+        "your secondary alarm is activated" => ["house" => 0, "garage" => 1],
+        "your alarm is activated and your secondary alarm" => ["house" => 1, "garage" => 1],
+        "your main alarm and secondary alarm are activated" => ["house" => 1, "garage" => 1],
+        "your alarm has been activated in day partial mode." => ["house" => 2, "garage" => 0],
+        "your alarm has been activated in night partial mode" => ["house" => 3, "garage" => 0],
+        "your alarm is activated in day partial mode and your secondary alarm is activated" => ["house" => 2, "garage" => 1],
+        "your alarm is activated in night partial mode and your secondary alarm is activated" => ["house" => 3, "garage" => 1],
     ];
 
     /**
      * List of messages we can't process: manual intervention is required
      */
     const FAIL = [
-        "Unable to connect the Alarm. One zone is open, check your windows and/or doors and try again." => [],
-        "Unable to connect the Alarm because is already connected in another mode." => [],
+        "unable to connect the alarm. one zone is open, check your windows and/or doors and try again." => [],
+        "unable to connect the alarm because is already connected in another mode." => [],
     ];
 
     /**
      * Server errors: we can retry the job
      */
     const RETRY = [
-        "We have a problem right now, try later" => [],
-        "Sorry but we are unable to carry out your request. Please try again later" => [],
+        "we have a problem right now, try later" => [],
+        "sorry but we are unable to carry out your request. please try again later" => [],
         "unable to create new native thread" => [],
-        "Invalid session. Please, try again later." => [],
-        "Due to a technical issue, the request cannot be processed at present. Please contact Verisure Services" => [],
-        "Due to a technical issue, the request cannot be processed at present. Please contact Customer Services" => [],
-        "Due to a technical issue, this request cannot be processed at present. Please contact Customer Service Team." => [],
-        "There was a problem communicating with the server" => [],
-        "We have had problems identifying you, please end session and log in again." => [],
-        "Error 5304. Due to a technical incident we cannot attend to your request. Please, try again in a few minute." => [],
+        "invalid session. please, try again later." => [],
+        "due to a technical issue, the request cannot be processed at present. please contact verisure services" => [],
+        "due to a technical issue, the request cannot be processed at present. please contact customer services" => [],
+        "due to a technical issue, this request cannot be processed at present. please contact customer service team." => [],
+        "there was a problem communicating with the server" => [],
+        "we have had problems identifying you, please end session and log in again." => [],
+        "error 5304. due to a technical incident we cannot attend to your request. please, try again in a few minute." => [],
     ];
 
     /**
@@ -129,7 +129,7 @@ class Status implements ShouldQueue
      */
     protected function parseResponse($response, $client)
     {
-        $message = $response["message"];
+        $message = Str::lower($response["message"]);
 
         // If the request was successful, update the Status record
         if (isset(self::SUCCESS[$message])) {
