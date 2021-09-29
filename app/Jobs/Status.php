@@ -61,7 +61,7 @@ class Status implements ShouldQueue
      */
     const RETRY = [
         "we have a problem right now, try later" => [],
-        "failedConexión reinicializada por la máquina remota" => [],
+        "conexión reinicializada por la máquina remota" => [],
         "sorry but we are unable to carry out your request. please try again later" => [],
         "unable to create new native thread" => [],
         "invalid session. please, try again later." => [],
