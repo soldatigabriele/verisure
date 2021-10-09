@@ -33,6 +33,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        $schedule->command('db:clean 7')->daily();
+
         $schedule->command('verisure:status')->everyFifteenMinutes();
 
         if (config('verisure.settings.schedule.annex.activate.enabled')) {
