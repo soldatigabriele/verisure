@@ -39,7 +39,9 @@ class DbClean extends Command
 
         $requests = Request::where('created_at', '<', today()->subDays($days))->get();
         $requests->each(function ($request) {
-            $request->response->delete();
+            if ($request->response) {
+                $request->response->delete();
+            }
             $request->delete();
         });
 
