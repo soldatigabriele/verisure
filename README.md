@@ -2,10 +2,9 @@
 
 This application will keep in sync with your Verisure UK account and will provide endpoints to interact with the alarm.
 
-## Disclaimer
+## NOTE
 
-This application relies on Verisure website and HTML responses to work. These can (and will) change in the future without any warning and will eventually break the application: I won't maintain this application forever, and I won't be responsible for any issue with your alarm. Use this application at your own risk.
-I will try my best to maintain the application until approx June 2022.
+This application is not working anymore and won't be updated.
 
 ## Setup
 
